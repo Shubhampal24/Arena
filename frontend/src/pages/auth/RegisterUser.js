@@ -1,223 +1,183 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { authAPI, gamesAPI } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-
-const STEPS = ['Account', 'Identity', 'Gaming', 'Done'];
+import { motion, AnimatePresence } from 'framer-motion';
+import { UserPlus, User, Shield, Gamepad2, MapPin, ChevronRight, ChevronLeft, Mail } from 'lucide-react';
 
 export default function RegisterUser() {
-  const [step, setStep]     = useState(0);
-  const [loading, setLoad]  = useState(false);
-  const [games, setGames]   = useState([]);
-  const [roles, setRoles]   = useState({});
+  const [step, setStep] = useState(1);
   const [states, setStates] = useState([]);
-
   const [form, setForm] = useState({
-    email: '', password: '', confirmPass: '',
-    username: '', displayName: '',
-    state: '', city: '',
-    primaryRole: '', primaryGame: '',
-    bio: '',
+    email: '', password: '', username: '', displayName: '',
+    primaryRole: 'Player', primaryGame: 'BGMI', state: '', city: ''
   });
 
-  const { login } = useAuth();
-  const navigate   = useNavigate();
-
-  useEffect(() => {
-    gamesAPI.getAll().then(r => setGames(r.data.data));
-    gamesAPI.getRoles().then(r => setRoles(r.data.data));
-    gamesAPI.getStates().then(r => setStates(r.data.data));
+  React.useEffect(() => {
+    gamesAPI.getStates().then(r => setStates(r.data.data)).catch(() => {});
   }, []);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+  const set = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const allRoleOptions = Object.values(roles).flat();
+  const nextStep = () => {
+    if (!form.email || !form.password || !form.username || !form.displayName)
+      return toast.error('Fill all fields');
+    if (form.password.length < 8) return toast.error('Password must be 8+ characters');
+    setStep(2);
+  };
 
-  const handleSubmit = async () => {
-    if (form.password !== form.confirmPass) { toast.error('Passwords do not match!'); return; }
-    setLoad(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      const { data } = await authAPI.registerUser({
-        email: form.email, password: form.password, username: form.username,
-        displayName: form.displayName, state: form.state, city: form.city,
-        primaryRole: form.primaryRole, primaryGame: form.primaryGame, bio: form.bio,
-      });
+      const { data } = await authAPI.registerUser(form);
       login(data);
-      setStep(3);
+      toast.success('Welcome to ArenaX!');
+      navigate('/feed');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed.');
+      toast.error(err.response?.data?.message || 'Registration failed');
     } finally {
-      setLoad(false);
+      setLoading(false);
     }
   };
 
-  const progressPct = ((step) / (STEPS.length - 1)) * 100;
+  const slideIn = { enter: { x: 40, opacity: 0 }, center: { x: 0, opacity: 1 }, exit: { x: -40, opacity: 0 } };
 
   return (
-    <div className="page flex-center" style={{ minHeight: '100vh', padding: '40px 20px' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'radial-gradient(ellipse at 20% 60%, rgba(255,107,0,0.07) 0%, transparent 60%)' }} />
+    <div className="auth-page">
+      <div className="auth-bg">
+        <div className="auth-bg-orb auth-bg-orb--1" />
+        <div className="auth-bg-orb auth-bg-orb--2" />
+      </div>
 
-      <div style={{ width: '100%', maxWidth: 520 }}>
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <Link to="/" style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: 'var(--text-white)' }}>
-            ARENA<span style={{ color: 'var(--saffron)' }}>X</span>
-          </Link>
-          <p style={{ color: 'var(--text-muted)', marginTop: 6, fontSize: '0.85rem' }}>Create your Gamer Profile</p>
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{ maxWidth: 460 }}
+      >
+        <div className="auth-header">
+          <div className="auth-icon-wrap" style={{ background: 'linear-gradient(135deg, var(--electric), #0099BB)' }}>
+            <UserPlus size={28} />
+          </div>
+          <h1 className="auth-title">Join ArenaX</h1>
+          <p className="auth-subtitle">Create your gamer profile</p>
         </div>
 
-        {/* Step indicators */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'center' }}>
-          {STEPS.map((s, i) => (
-            <div key={s} style={{
-              padding: '4px 14px', borderRadius: 100, fontSize: '0.75rem',
-              fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em',
-              background: i <= step ? 'var(--saffron)' : 'var(--bg-card)',
-              color: i <= step ? 'white' : 'var(--text-muted)',
-              border: `1px solid ${i <= step ? 'transparent' : 'var(--border-dim)'}`,
-              transition: 'all 0.3s',
-            }}>{s}</div>
-          ))}
-        </div>
-        <div className="progress-bar" style={{ marginBottom: 32 }}>
-          <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+        {/* Step Indicator */}
+        <div className="step-bar">
+          <div className={`step-dot ${step >= 1 ? 'active' : ''}`}>1</div>
+          <div className="step-line"><div className="step-line-fill" style={{ width: step >= 2 ? '100%' : '0%' }} /></div>
+          <div className={`step-dot ${step >= 2 ? 'active' : ''}`}>2</div>
         </div>
 
-        <div className="card" style={{ padding: '36px 32px', border: '1px solid var(--border)' }}>
-
-          {/* STEP 0 — Account */}
-          {step === 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <h3 style={{ marginBottom: 4 }}>Create Your Account</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 8 }}>The basics — your login credentials.</p>
-
-              <div className="input-group">
-                <label className="input-label">Email Address *</label>
-                <input className="input" type="email" placeholder="pro@gaming.com" value={form.email} onChange={e => set('email', e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Password *</label>
-                <input className="input" type="password" placeholder="Min 8 characters" value={form.password} onChange={e => set('password', e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Confirm Password *</label>
-                <input className="input" type="password" placeholder="••••••••" value={form.confirmPass} onChange={e => set('confirmPass', e.target.value)} required />
-              </div>
-              <button className="btn btn-primary btn-full" onClick={() => { if (!form.email || !form.password || form.password !== form.confirmPass) { toast.error('Fill all fields correctly.'); return; } setStep(1); }}>
-                Next: Your Identity →
-              </button>
-            </div>
-          )}
-
-          {/* STEP 1 — Identity */}
-          {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <h3 style={{ marginBottom: 4 }}>Your Gaming Identity</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 8 }}>How the community will know you.</p>
-
-              <div className="input-group">
-                <label className="input-label">Display Name *</label>
-                <input className="input" placeholder="Your name / alias" value={form.displayName} onChange={e => set('displayName', e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Username * <span style={{ color: 'var(--text-muted)', textTransform: 'none', fontSize: '0.8rem' }}>(arenax.gg/u/<b>{form.username || '...'}</b>)</span></label>
-                <input className="input" placeholder="no spaces, letters/numbers/_" value={form.username} onChange={e => set('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} required />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Bio (optional)</label>
-                <textarea className="input" rows={3} placeholder="Tell the community about yourself..." value={form.bio} onChange={e => set('bio', e.target.value)} style={{ resize: 'vertical' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div className="input-group">
-                  <label className="input-label">State *</label>
-                  <select className="input select" value={form.state} onChange={e => set('state', e.target.value)} required>
-                    <option value="">Select State</option>
-                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+        <form onSubmit={handleSubmit}>
+          <AnimatePresence mode="wait">
+            {step === 1 ? (
+              <motion.div key="s1" variants={slideIn} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="auth-form">
+                <div className="form-field">
+                  <label className="form-label"><Mail size={14} /> Email</label>
+                  <input type="email" name="email" className="form-input" placeholder="you@example.com" value={form.email} onChange={set} required />
+                </div>
+                <div className="form-field">
+                  <label className="form-label"><Shield size={14} /> Password</label>
+                  <input type="password" name="password" className="form-input" placeholder="Min 8 characters" value={form.password} onChange={set} required />
+                </div>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label className="form-label">Username</label>
+                    <input type="text" name="username" className="form-input" placeholder="e.g. snipex" value={form.username} onChange={set} required />
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Display Name</label>
+                    <input type="text" name="displayName" className="form-input" placeholder="e.g. SnipeX" value={form.displayName} onChange={set} required />
+                  </div>
+                </div>
+                <button type="button" className="btn-submit" onClick={nextStep} style={{ background: 'linear-gradient(135deg, var(--electric), #0099BB)', boxShadow: '0 4px 16px rgba(0,229,255,0.25)' }}>
+                  Continue <ChevronRight size={18} />
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div key="s2" variants={slideIn} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="auth-form">
+                <div className="form-field">
+                  <label className="form-label"><Gamepad2 size={14} /> Primary Game</label>
+                  <select name="primaryGame" className="form-input form-select" value={form.primaryGame} onChange={set}>
+                    <option value="BGMI">BGMI</option><option value="Valorant">Valorant</option><option value="Free Fire">Free Fire</option><option value="CS2">CS2</option>
                   </select>
                 </div>
-                <div className="input-group">
-                  <label className="input-label">City</label>
-                  <input className="input" placeholder="e.g. Mumbai" value={form.city} onChange={e => set('city', e.target.value)} />
+                <div className="form-field">
+                  <label className="form-label"><User size={14} /> Role</label>
+                  <select name="primaryRole" className="form-input form-select" value={form.primaryRole} onChange={set}>
+                    <option value="Player">Pro Player</option><option value="Coach">Coach</option><option value="Content Creator">Content Creator</option><option value="Manager">Manager</option><option value="Analyst">Analyst</option>
+                  </select>
                 </div>
-              </div>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label className="form-label"><MapPin size={14} /> State</label>
+                    <select name="state" className="form-input form-select" value={form.state} onChange={set}>
+                      <option value="">Select State</option>
+                      {states.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">City</label>
+                    <input type="text" name="city" className="form-input" placeholder="Mumbai" value={form.city} onChange={set} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button type="button" className="btn-back" onClick={() => setStep(1)}><ChevronLeft size={18} /></button>
+                  <button type="submit" className="btn-submit" disabled={loading}>
+                    {loading ? 'Creating account...' : 'Create Account'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </form>
 
-              <div className="flex gap-4">
-                <button className="btn btn-ghost" onClick={() => setStep(0)}>← Back</button>
-                <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => { if (!form.displayName || !form.username || !form.state) { toast.error('Fill required fields.'); return; } setStep(2); }}>
-                  Next: Gaming Profile →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2 — Gaming */}
-          {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <h3 style={{ marginBottom: 4 }}>Your Gaming Profile</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 8 }}>Tell us what you play and what you do.</p>
-
-              <div className="input-group">
-                <label className="input-label">Primary Role *</label>
-                <select className="input select" value={form.primaryRole} onChange={e => set('primaryRole', e.target.value)} required>
-                  <option value="">Select your main role</option>
-                  {Object.entries(roles).map(([cat, roleList]) => (
-                    <optgroup key={cat} label={cat}>
-                      {roleList.map(r => <option key={r} value={r}>{r}</option>)}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">Primary Game *</label>
-                <select className="input select" value={form.primaryGame} onChange={e => set('primaryGame', e.target.value)} required>
-                  <option value="">Select main game</option>
-                  {games.map(g => <option key={g.id} value={g.id}>{g.name} ({g.genre})</option>)}
-                </select>
-              </div>
-
-              <div style={{ background: 'var(--bg-input)', borderRadius: 10, padding: 16, border: '1px solid var(--border-dim)' }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                  ℹ️ You can add detailed game stats, rank tiers, highlight clips, and achievements from your <b>profile dashboard</b> after registration.
-                </p>
-              </div>
-
-              <div className="flex gap-4">
-                <button className="btn btn-ghost" onClick={() => setStep(1)}>← Back</button>
-                <button className="btn btn-primary" style={{ flex: 1 }} disabled={loading} onClick={handleSubmit}>
-                  {loading ? '⏳ Creating...' : '🎮 Create My Profile!'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3 — Done */}
-          {step === 3 && (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ fontSize: 72, marginBottom: 24 }}>🎉</div>
-              <h2 style={{ color: 'var(--saffron)', marginBottom: 12 }}>You're in the Arena!</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: 32, lineHeight: 1.7 }}>
-                Welcome to ArenaX, <b style={{ color: 'var(--text-primary)' }}>{form.displayName}</b>!<br />
-                Your profile is ready. Complete it to unlock maximum visibility.
-              </p>
-              <div className="flex-col gap-4">
-                <button className="btn btn-primary btn-full btn-lg" onClick={() => navigate('/profile/edit')}>
-                  Complete My Profile →
-                </button>
-                <button className="btn btn-ghost btn-full" onClick={() => navigate('/feed')}>
-                  Explore the Feed
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="auth-footer">
+          <span>Already have an account?</span>
+          <Link to="/login">Sign In</Link>
         </div>
+      </motion.div>
 
-        {step < 3 && (
-          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: 20 }}>
-            Already have an account? <Link to="/login" style={{ color: 'var(--saffron)' }}>Login</Link>
-          </p>
-        )}
-      </div>
+      <style>{`
+        .auth-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; overflow:hidden; }
+        .auth-bg { position:fixed; inset:0; z-index:0; }
+        .auth-bg-orb { position:absolute; border-radius:50%; filter:blur(120px); }
+        .auth-bg-orb--1 { width:500px; height:500px; background:var(--saffron); top:-200px; right:-100px; opacity:0.08; }
+        .auth-bg-orb--2 { width:400px; height:400px; background:var(--electric); bottom:-150px; left:-100px; opacity:0.06; }
+        .auth-card { position:relative; z-index:1; width:100%; max-width:420px; background:rgba(17,17,24,0.85); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:40px 32px; box-shadow:0 24px 48px rgba(0,0,0,0.4); }
+        .auth-header { text-align:center; margin-bottom:28px; }
+        .auth-icon-wrap { width:56px; height:56px; margin:0 auto 16px; border-radius:16px; background:linear-gradient(135deg,var(--saffron),var(--saffron-dark)); display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 8px 24px rgba(255,107,0,0.25); }
+        .auth-title { font-size:1.6rem; font-weight:700; color:var(--text-white); margin-bottom:6px; }
+        .auth-subtitle { color:var(--text-muted); font-size:0.9rem; }
+        .auth-form { display:flex; flex-direction:column; gap:18px; margin-bottom:24px; }
+        .form-field { display:flex; flex-direction:column; gap:6px; }
+        .form-label { display:flex; align-items:center; gap:6px; font-family:var(--font-display); font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-secondary); }
+        .form-input { width:100%; padding:11px 14px; background:var(--bg-input); border:1.5px solid rgba(255,255,255,0.06); border-radius:10px; color:var(--text-primary); font-family:var(--font-body); font-size:0.95rem; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+        .form-input:focus { border-color:var(--saffron); box-shadow:0 0 0 3px rgba(255,107,0,0.12); }
+        .form-input::placeholder { color:var(--text-muted); }
+        .form-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23FF6B00' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .btn-submit { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px 24px; background:linear-gradient(135deg,var(--saffron),var(--saffron-dark)); border:none; border-radius:12px; color:white; font-family:var(--font-display); font-size:1rem; font-weight:700; cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 4px 16px rgba(255,107,0,0.3); }
+        .btn-submit:hover:not(:disabled) { transform:translateY(-1px); }
+        .btn-submit:disabled { opacity:0.7; cursor:not-allowed; }
+        .btn-back { width:48px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; color:var(--text-secondary); cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+        .btn-back:hover { background:rgba(255,255,255,0.08); color:white; }
+        .auth-footer { text-align:center; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); font-size:0.9rem; color:var(--text-muted); }
+        .auth-footer a { color:var(--electric); font-weight:600; margin-left:6px; }
+        .step-bar { display:flex; align-items:center; gap:0; margin-bottom:28px; padding:0 20px; }
+        .step-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:0.8rem; font-weight:700; background:rgba(255,255,255,0.04); color:var(--text-muted); border:1.5px solid rgba(255,255,255,0.08); transition:all 0.3s; flex-shrink:0; }
+        .step-dot.active { background:var(--electric); color:var(--bg-void); border-color:var(--electric); box-shadow:0 0 12px rgba(0,229,255,0.3); }
+        .step-line { flex:1; height:2px; background:rgba(255,255,255,0.06); margin:0 8px; overflow:hidden; border-radius:2px; }
+        .step-line-fill { height:100%; background:var(--electric); transition:width 0.4s ease; border-radius:2px; }
+      `}</style>
     </div>
   );
 }

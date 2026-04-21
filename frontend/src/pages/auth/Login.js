@@ -1,141 +1,325 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import { LogIn, User, Building2, Mail, Lock, Gamepad2 } from 'lucide-react';
 
 export default function Login() {
-  const [type, setType]       = useState('user'); // 'user' | 'organization'
-  const [email, setEmail]     = useState('');
-  const [password, setPass]   = useState('');
+  const [accountType, setAccountType] = useState('user');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPass, setShow]   = useState(false);
-
   const { login } = useAuth();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email || !password) return toast.error('Please fill all fields');
     setLoading(true);
     try {
-      const { data } = await authAPI.login({ email, password, accountType: type });
+      const { data } = await authAPI.login({ email, password, accountType });
       login(data);
-      toast.success(`Welcome back! GG 🎮`);
-      navigate(type === 'organization' ? '/org/dashboard' : '/feed');
+      toast.success('Welcome back!');
+      if (data.accountType === 'organization') navigate('/org/dashboard');
+      else navigate('/feed');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed. Check credentials.');
+      toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page flex-center" style={{ minHeight: '100vh', padding: '40px 20px' }}>
+    <div className="auth-page">
+      <div className="auth-bg">
+        <div className="auth-bg-orb auth-bg-orb--1" />
+        <div className="auth-bg-orb auth-bg-orb--2" />
+      </div>
 
-      {/* BG effect */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'radial-gradient(ellipse at 30% 50%, rgba(255,107,0,0.06) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(0,229,255,0.04) 0%, transparent 60%)' }} />
-
-      <div style={{ width: '100%', maxWidth: 480 }}>
-
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <Link to="/" style={{ display: 'inline-block' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, letterSpacing: '0.15em', color: 'var(--text-white)' }}>
-              ARENA<span style={{ color: 'var(--saffron)' }}>X</span>
-            </div>
-          </Link>
-          <p style={{ color: 'var(--text-muted)', marginTop: 8, fontSize: '0.9rem' }}>India's Gaming Career Platform</p>
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+      >
+        {/* Header */}
+        <div className="auth-header">
+          <div className="auth-icon-wrap">
+            <Gamepad2 size={28} />
+          </div>
+          <h1 className="auth-title">Welcome Back</h1>
+          <p className="auth-subtitle">Sign in to continue to ArenaX</p>
         </div>
 
-        {/* Card */}
-        <div className="card" style={{ padding: '40px 36px', border: '1px solid var(--border)' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: 8 }}>Welcome Back</h2>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: 32, fontSize: '0.9rem' }}>Log in to continue your journey</p>
+        {/* Account Type Toggle */}
+        <div className="auth-toggle">
+          <button
+            className={`auth-toggle-btn ${accountType === 'user' ? 'active' : ''}`}
+            onClick={() => setAccountType('user')}
+            type="button"
+          >
+            <User size={18} />
+            <span>Gamer</span>
+          </button>
+          <button
+            className={`auth-toggle-btn ${accountType === 'organization' ? 'active' : ''}`}
+            onClick={() => setAccountType('organization')}
+            type="button"
+          >
+            <Building2 size={18} />
+            <span>Organization</span>
+          </button>
+        </div>
 
-          {/* Account type toggle */}
-          <div style={{ display: 'flex', background: 'var(--bg-input)', borderRadius: 10, padding: 4, marginBottom: 32 }}>
-            {[
-              { value: 'user',         label: '🎮 Gamer / Creator' },
-              { value: 'organization', label: '🏢 Organization' },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setType(opt.value)}
-                style={{
-                  flex: 1, padding: '10px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.05em',
-                  transition: 'all 0.2s',
-                  background: type === opt.value ? 'var(--saffron)' : 'transparent',
-                  color:      type === opt.value ? 'white' : 'var(--text-secondary)',
-                  boxShadow:  type === opt.value ? '0 4px 12px rgba(255,107,0,0.3)' : 'none',
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-field">
+            <label className="form-label">
+              <Mail size={14} />
+              Email Address
+            </label>
+            <input
+              type="email"
+              className="form-input"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div className="input-group">
-              <label className="input-label">Email Address</label>
-              <input
-                className="input"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
+          <div className="form-field">
+            <label className="form-label">
+              <Lock size={14} />
+              Password
+            </label>
+            <input
+              type="password"
+              className="form-input"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-            <div className="input-group">
-              <label className="input-label">Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  className="input"
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPass(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  style={{ paddingRight: 44 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShow(!showPass)}
-                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}
-                >
-                  {showPass ? '🙈' : '👁️'}
-                </button>
-              </div>
-              <div style={{ textAlign: 'right', marginTop: 4 }}>
-                <a href="#" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Forgot password?</a>
-              </div>
-            </div>
+          <button
+            type="submit"
+            className="btn-submit"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="btn-loading">Signing in...</span>
+            ) : (
+              <>
+                <LogIn size={18} />
+                Sign In
+              </>
+            )}
+          </button>
+        </form>
 
-            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
-              {loading ? '⏳ Logging in...' : 'Login to Arena →'}
-            </button>
-          </form>
-
-          <div className="divider" />
-
-          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            New to ArenaX?{' '}
-            <Link to={type === 'organization' ? '/register/org' : '/register'} style={{ color: 'var(--saffron)', fontWeight: 600 }}>
-              Create Account
-            </Link>
-          </p>
+        {/* Footer */}
+        <div className="auth-footer">
+          <span>Don't have an account?</span>
+          <Link to={accountType === 'user' ? '/register' : '/register/org'}>
+            Create Account
+          </Link>
         </div>
+      </motion.div>
 
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: 24 }}>
-          By logging in, you agree to our{' '}
-          <a href="#" style={{ color: 'var(--text-secondary)' }}>Terms</a>{' & '}
-          <a href="#" style={{ color: 'var(--text-secondary)' }}>Privacy Policy</a>
-        </p>
-      </div>
+      <style>{`
+        .auth-page {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          position: relative;
+          overflow: hidden;
+        }
+        .auth-bg {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+        }
+        .auth-bg-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(120px);
+          opacity: 0.4;
+        }
+        .auth-bg-orb--1 {
+          width: 500px;
+          height: 500px;
+          background: var(--saffron);
+          top: -200px;
+          right: -100px;
+          opacity: 0.08;
+        }
+        .auth-bg-orb--2 {
+          width: 400px;
+          height: 400px;
+          background: var(--electric);
+          bottom: -150px;
+          left: -100px;
+          opacity: 0.06;
+        }
+        .auth-card {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          max-width: 420px;
+          background: rgba(17, 17, 24, 0.85);
+          backdrop-filter: blur(24px);
+          border: 1px solid rgba(255,255,255, 0.06);
+          border-radius: 20px;
+          padding: 40px 32px;
+          box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+        }
+        .auth-header {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+        .auth-icon-wrap {
+          width: 56px;
+          height: 56px;
+          margin: 0 auto 16px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, var(--saffron), var(--saffron-dark));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          box-shadow: 0 8px 24px rgba(255,107,0,0.25);
+        }
+        .auth-title {
+          font-size: 1.6rem;
+          font-weight: 700;
+          color: var(--text-white);
+          margin-bottom: 6px;
+        }
+        .auth-subtitle {
+          color: var(--text-muted);
+          font-size: 0.9rem;
+        }
+        .auth-toggle {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-bottom: 28px;
+          padding: 4px;
+          background: var(--bg-base);
+          border-radius: 12px;
+        }
+        .auth-toggle-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 16px;
+          border: none;
+          border-radius: 10px;
+          background: transparent;
+          color: var(--text-muted);
+          font-family: var(--font-display);
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .auth-toggle-btn.active {
+          background: var(--saffron);
+          color: white;
+          box-shadow: 0 4px 12px rgba(255,107,0,0.3);
+        }
+        .auth-form {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+        .form-field {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: var(--font-display);
+          font-size: 0.8rem;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--text-secondary);
+        }
+        .form-input {
+          width: 100%;
+          padding: 12px 16px;
+          background: var(--bg-input);
+          border: 1.5px solid rgba(255,255,255,0.06);
+          border-radius: 10px;
+          color: var(--text-primary);
+          font-family: var(--font-body);
+          font-size: 0.95rem;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+          border-color: var(--saffron);
+          box-shadow: 0 0 0 3px rgba(255,107,0,0.12);
+        }
+        .form-input::placeholder {
+          color: var(--text-muted);
+        }
+        .btn-submit {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: 100%;
+          padding: 14px 24px;
+          margin-top: 4px;
+          background: linear-gradient(135deg, var(--saffron), var(--saffron-dark));
+          border: none;
+          border-radius: 12px;
+          color: white;
+          font-family: var(--font-display);
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          transition: transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0 4px 16px rgba(255,107,0,0.3);
+        }
+        .btn-submit:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 24px rgba(255,107,0,0.4);
+        }
+        .btn-submit:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        .auth-footer {
+          text-align: center;
+          padding-top: 20px;
+          border-top: 1px solid rgba(255,255,255,0.05);
+          font-size: 0.9rem;
+          color: var(--text-muted);
+        }
+        .auth-footer a {
+          color: var(--electric);
+          font-weight: 600;
+          margin-left: 6px;
+        }
+        .auth-footer a:hover {
+          text-decoration: underline;
+        }
+      `}</style>
     </div>
   );
 }

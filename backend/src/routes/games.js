@@ -1,17 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { GAMES, PROFESSIONAL_ROLES, DEVICES, ORG_TYPES, INDIAN_STATES, JOB_FIELDS } = require('../config/constants');
+const gameController = require('../controllers/gameController');
 
-router.get('/', (req, res) => res.json({ success: true, data: GAMES }));
-router.get('/roles', (req, res) => res.json({ success: true, data: PROFESSIONAL_ROLES }));
-router.get('/devices', (req, res) => res.json({ success: true, data: DEVICES }));
-router.get('/org-types', (req, res) => res.json({ success: true, data: ORG_TYPES }));
-router.get('/states', (req, res) => res.json({ success: true, data: INDIAN_STATES }));
-router.get('/job-fields', (req, res) => res.json({ success: true, data: JOB_FIELDS }));
-router.get('/:id', (req, res) => {
-  const game = GAMES.find(g => g.id === req.params.id);
-  if (!game) return res.status(404).json({ success: false, message: 'Game not found.' });
-  res.json({ success: true, data: game });
-});
+router.get('/', gameController.getGames);
+router.get('/roles', gameController.getRoles);
+router.get('/devices', gameController.getDevices);
+router.get('/org-types', gameController.getOrgTypes);
+router.get('/states', gameController.getStates);
+router.get('/job-fields', gameController.getJobFields);
+router.get('/:id', gameController.getGameById);
 
 module.exports = router;
