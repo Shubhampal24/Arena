@@ -286,33 +286,6 @@ Services:
 
 ---
 
-## Environment Variables
-
-### Backend (`backend/.env`)
-
-| Variable | Required | Description |
-|---|---|---|
-| `PORT` | No | Server port (default: 5000) |
-| `NODE_ENV` | No | `development` or `production` |
-| `MONGODB_URI` | Yes | MongoDB connection string |
-| `JWT_SECRET` | Yes | JWT signing secret (32+ chars) |
-| `JWT_EXPIRE` | No | Access token expiry (default: 7d) |
-| `JWT_REFRESH_SECRET` | No | Refresh token secret (falls back to JWT_SECRET) |
-| `CLOUDINARY_CLOUD_NAME` | Yes* | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Yes* | Cloudinary API key |
-| `CLOUDINARY_API_SECRET` | Yes* | Cloudinary API secret |
-| `CLIENT_URL` | No | Frontend URL for CORS |
-
-*Required only if using file uploads
-
-### Frontend (`frontend/.env`)
-
-| Variable | Required | Description |
-|---|---|---|
-| `REACT_APP_API_URL` | No | Backend API base URL (default: http://localhost:5000/api) |
-
----
-
 ## API Reference
 
 ### Authentication
