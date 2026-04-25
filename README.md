@@ -19,18 +19,18 @@
 
 ## 📋 Table of Contents
 
-1. [What is ArenaX?](#what-is-arenax)
-2. [Core Features](#core-features)
-3. [Tech Stack](#tech-stack)
-4. [Project Structure](#project-structure)
-5. [Quick Start](#quick-start)
-6. [Environment Variables](#environment-variables)
-7. [API Reference](#api-reference)
-8. [Database Models](#database-models)
-9. [Authentication Flow](#authentication-flow)
-10. [Deployment Guide](#deployment-guide)
-11. [Roadmap](#roadmap)
-12. [Contributing](#contributing)
+1. [What is ArenaX?]
+2. [Core Features]
+3. [Tech Stack]
+4. [Project Structure]
+5. [Quick Start]
+6. [Environment Variables]
+7. [API Reference]
+8. [Database Models]
+9. [Authentication Flow
+10. [Deployment Guide
+11. [Roadmap]
+12. [Contributing]
 
 ---
 
