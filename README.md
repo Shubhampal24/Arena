@@ -222,22 +222,10 @@ cp .env.example .env
 ```
 
 Edit `backend/.env`:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/arenax
-JWT_SECRET=your_super_secret_minimum_32_characters
-JWT_EXPIRE=7d
-JWT_REFRESH_SECRET=another_secret_min_32_characters
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_key
-CLOUDINARY_API_SECRET=your_secret
-CLIENT_URL=http://localhost:3000
-```
+
 
 Create `frontend/.env`:
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-```
+
 
 ### 3. Seed the Database (Optional but Recommended)
 
