@@ -252,16 +252,6 @@ This creates:
 - 4 sample job posts (IGL, GFX Artist, Valorant Duelist, Video Editor)
 - 4 community posts
 
-**Demo credentials after seeding:**
-
-| Type | Email | Password |
-|---|---|---|
-| 🎮 User (IGL) | jonathan.india@demo.gg | Demo@1234 |
-| 🎮 User (Creator) | mortal.creator@demo.gg | Demo@1234 |
-| 🎮 User (GFX Artist) | raveena.gfx@demo.in | Demo@1234 |
-| 🏢 Org | recruit@s8ul-demo.gg | Demo@1234 |
-| 🏢 Org | hr@godlike-demo.gg | Demo@1234 |
-
 ### 4. Run Development Servers
 
 ```bash
