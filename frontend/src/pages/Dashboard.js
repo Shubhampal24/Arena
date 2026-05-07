@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { dashboardAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp, Briefcase, FileText, Eye, Activity,
-  CheckCircle, ChevronRight, User, Award, Users
+  CheckCircle, User, Award, Users,
+  ArrowUpRight, Sparkles, Target, Zap, ChevronRight,
+  ShieldCheck, MapPin, Globe, ExternalLink
 } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
 
@@ -21,243 +23,221 @@ export default function Dashboard() {
   }, []);
 
   const score = data?.profileScore || user?.profileScore || 0;
-
-  const scoreColor = score >= 80 ? 'var(--india-green)' : score >= 50 ? 'var(--electric)' : 'var(--saffron)';
+  const scoreColor = score >= 80 ? '#10b981' : score >= 50 ? 'var(--primary)' : '#f59e0b';
 
   const stats = [
-    { label: 'Profile Score', value: `${score}%`, icon: <TrendingUp size={20}/>, color: scoreColor, bg: 'rgba(0,229,255,0.06)' },
-    { label: 'Applications', value: data?.applications?.length || 0, icon: <FileText size={20}/>, color: 'var(--saffron)', bg: 'rgba(255,107,0,0.06)' },
-    { label: 'Profile Views', value: user?.profileViews || 0, icon: <Eye size={20}/>, color: 'var(--purple-light)', bg: 'rgba(168,85,247,0.06)' },
-    { label: 'Posts', value: data?.recentPosts?.length || 0, icon: <Activity size={20}/>, color: 'var(--electric)', bg: 'rgba(0,229,255,0.06)' },
-  ];
-
-  const profileCompleted = [
-    { label: 'Basic info', done: !!(user?.displayName && user?.email) },
-    { label: 'Bio added', done: !!user?.bio },
-    { label: 'Game profile', done: (user?.gameProfiles?.length || 0) > 0 },
-    { label: 'Profile photo', done: !!user?.avatar },
-    { label: 'Portfolio item', done: (user?.portfolio?.length || 0) > 0 },
+    { label: 'Profile Authority', value: `${score}%`, icon: <TrendingUp size={18}/>, color: scoreColor },
+    { label: 'Active Pipeline', value: data?.applications?.length || 0, icon: <Target size={18}/>, color: '#6366f1' },
+    { label: 'Network Pulse', value: data?.recentPosts?.length || 0, icon: <Activity size={18}/>, color: '#f59e0b' },
+    { label: 'Ecosystem Reach', value: user?.profileViews || 0, icon: <Eye size={18}/>, color: '#10b981' },
   ];
 
   return (
-    <div className="dash-shell">
-      <div className="dash-container">
-
-        {/* Header */}
-        <div className="dash-header">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-            <h1>
-              Hey, <span style={{ color: 'var(--saffron)' }}>{user?.displayName?.split(' ')[0]}</span> 👋
-            </h1>
-            <p className="dash-subtitle">Here's what's happening in your arena</p>
-          </motion.div>
-          <div className="dash-header-actions">
-            <Link to="/feed" className="dash-header-btn">Go to Feed</Link>
-            <Link to="/jobs" className="dash-header-btn dash-header-btn--primary">Browse Jobs</Link>
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: 1000 }}>
+        
+        {/* Modern Dashboard Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+          <div>
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }} 
+              animate={{ opacity: 1, x: 0 }}
+              className="px-4 py-1 bg-primary/10 border border-primary/20 rounded-full inline-flex items-center gap-2 mb-4"
+            >
+              <Sparkles size={12} className="text-primary" />
+              <span className="text-[10px] font-black text-primary tracking-widest uppercase">Professional Overview</span>
+            </motion.div>
+            <h1 className="h1 leading-tight mb-2">Greetings, <span className="text-gradient">{user?.displayName?.split(' ')[0]}</span></h1>
+            <p className="text-secondary font-medium max-w-md">Your professional identity is active in the ecosystem. Here's your impact data.</p>
           </div>
-        </div>
+          
+          <div className="flex gap-3">
+            <Link to={`/u/${user?.username}`} className="btn btn-secondary px-6 py-3 rounded-xl gap-2 font-bold text-sm">
+              <User size={18} /> Public Identity
+            </Link>
+            <Link to="/jobs" className="btn btn-primary px-8 py-3 rounded-xl shadow-primary gap-2 font-bold text-sm">
+              <Briefcase size={18} /> Search Jobs
+            </Link>
+          </div>
+        </header>
 
-        {/* Stats */}
-        <div className="dash-stats-grid">
-          {stats.map((s, i) => (
-            <motion.div
-              key={s.label}
-              className="dash-stat-card"
-              style={{ '--accent': s.color, '--accent-bg': s.bg }}
+        {/* High-Impact Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {stats.map((stat, i) => (
+            <motion.div 
+              key={stat.label}
+              className="glass-surface p-7 rounded-[32px] relative overflow-hidden group hover:border-primary transition-all"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              whileHover={{ y: -4 }}
+              transition={{ delay: i * 0.1 }}
             >
-              <div className="dash-stat-icon">{s.icon}</div>
-              <div className="dash-stat-value">{loading ? '–' : s.value}</div>
-              <div className="dash-stat-label">{s.label}</div>
+              <div className="flex-between mb-6">
+                <div className="w-11 h-11 rounded-2xl bg-void border border-white/5 flex-center group-hover:bg-primary group-hover:text-white transition-all shadow-lg" style={{ color: stat.color }}>
+                  {stat.icon}
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white/5 flex-center text-muted group-hover:text-primary transition-colors">
+                  <ArrowUpRight size={14} />
+                </div>
+              </div>
+              <h3 className="text-2xl font-black text-white mb-1 tracking-tighter">{loading ? '...' : stat.value}</h3>
+              <p className="text-[10px] text-muted font-black uppercase tracking-widest">{stat.label}</p>
+              <div className="auth-bg-glow" style={{ bottom: '-40%', right: '-40%', width: '100%', height: '100%', opacity: 0.05 }} />
             </motion.div>
           ))}
         </div>
 
-        <div className="dash-grid">
-
-          {/* Profile Completion */}
-          <motion.div className="dash-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-            <div className="dash-card-header">
-              <h3>Profile Strength</h3>
-              <span style={{ color: scoreColor, fontWeight: 700 }}>{score}%</span>
-            </div>
-            <div className="dash-progress-bar">
-              <motion.div
-                className="dash-progress-fill"
-                initial={{ width: 0 }}
-                animate={{ width: `${score}%` }}
-                transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
-                style={{ background: `linear-gradient(90deg, ${scoreColor}88, ${scoreColor})` }}
-              />
-            </div>
-            <div className="dash-checklist">
-              {profileCompleted.map(item => (
-                <div key={item.label} className="dash-check-item">
-                  <CheckCircle size={16} style={{ color: item.done ? 'var(--india-green)' : 'var(--border)' }}/>
-                  <span style={{ color: item.done ? 'var(--text-primary)' : 'var(--text-muted)', textDecoration: item.done ? 'none' : 'none' }}>
-                    {item.label}
-                  </span>
-                  {!item.done && <span className="dash-check-cta">Add →</span>}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
+          
+          {/* Main Information Column */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Identity Authority Card */}
+            <section className="glass-surface p-8 rounded-[32px] border-white/5 shadow-xl relative overflow-hidden">
+              <div className="flex-between mb-10">
+                <div>
+                  <h3 className="text-lg font-bold flex items-center gap-3 text-white">
+                    <ShieldCheck size={22} className="text-primary" /> Identity Authority
+                  </h3>
+                  <p className="text-xs text-secondary font-medium mt-1">Strengthen your global footprint to attract elite entities.</p>
                 </div>
-              ))}
-            </div>
-            <Link to="/profile/edit" className="dash-card-action">
-              Complete Profile <ChevronRight size={16}/>
-            </Link>
-          </motion.div>
+                <div className="text-right">
+                  <span className="text-2xl font-black tracking-tighter" style={{ color: scoreColor }}>{score}%</span>
+                </div>
+              </div>
 
-          {/* Applications */}
-          <motion.div className="dash-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-            <div className="dash-card-header">
-              <h3>My Applications</h3>
-              <Link to="/jobs" style={{ fontSize: '0.82rem', color: 'var(--electric)' }}>Browse Jobs</Link>
-            </div>
-            {loading ? (
-              [...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 56, borderRadius: 10, marginBottom: 10 }}/>)
-            ) : data?.applications?.length > 0 ? (
-              <div className="dash-app-list">
-                {data.applications.map(app => (
-                  <div key={app._id} className="dash-app-item">
-                    <div className="dash-app-logo">
-                      {app.jobId?.postedBy?.orgLogo
-                        ? <img src={app.jobId.postedBy.orgLogo} alt=""/>
-                        : <Briefcase size={18}/>}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="dash-app-title">{app.jobId?.title || 'Unknown Role'}</div>
-                      <div className="dash-app-org">{app.jobId?.postedBy?.orgName}</div>
-                    </div>
-                    <span className={`dash-status dash-status--${app.status}`}>{app.status}</span>
-                  </div>
-                ))}
+              <div className="w-full h-2.5 bg-void rounded-full overflow-hidden mb-12 shadow-inner">
+                <motion.div 
+                  className="h-full bg-primary" 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${score}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  style={{ backgroundColor: scoreColor, boxShadow: `0 0 15px ${scoreColor}44` }}
+                />
               </div>
-            ) : (
-              <div className="dash-empty">
-                <Briefcase size={32} style={{ color: 'var(--text-muted)', marginBottom: 8 }}/>
-                <p>No applications yet. Start exploring!</p>
-                <Link to="/jobs" className="dash-card-action" style={{ justifyContent: 'center', marginTop: 12 }}>Find Jobs</Link>
-              </div>
-            )}
-          </motion.div>
 
-          {/* Game Profiles */}
-          <motion.div className="dash-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-            <div className="dash-card-header">
-              <h3>Game Profiles</h3>
-              <Link to="/profile/edit" style={{ fontSize: '0.82rem', color: 'var(--electric)' }}>+ Add</Link>
-            </div>
-            {user?.gameProfiles?.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {user.gameProfiles.map(g => (
-                  <div key={g._id} className="dash-game-row">
-                    <div className="dash-game-icon">🎮</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, color: 'var(--text-white)', fontSize: '0.9rem' }}>{g.gameName}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{g.inGameRoles?.join(', ')}</div>
-                    </div>
-                    {g.currentTier && <span className="badge-tier">{g.currentTier}</span>}
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CheckItem label="Verified Identity Name" done={!!(user?.displayName)} />
+                <CheckItem label="Strategic Career Brief" done={!!user?.bio} />
+                <CheckItem label="Intellectual Portfolio" done={(user?.portfolio?.length || 0) > 0} />
+                <CheckItem label="Visual Recognition" done={!!user?.avatar} />
               </div>
-            ) : (
-              <div className="dash-empty">
-                <p>Add your game profiles to attract orgs.</p>
-                <Link to="/profile/edit" className="dash-card-action" style={{ justifyContent: 'center', marginTop: 12 }}>Add Game Profile</Link>
-              </div>
-            )}
-          </motion.div>
 
-          {/* Recent Posts */}
-          <motion.div className="dash-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-            <div className="dash-card-header">
-              <h3>My Posts</h3>
-              <Link to="/feed" style={{ fontSize: '0.82rem', color: 'var(--electric)' }}>View Feed</Link>
-            </div>
-            {data?.recentPosts?.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {data.recentPosts.map(p => (
-                  <div key={p._id} className="dash-post-row">
-                    <p className="dash-post-text">{p.content}</p>
-                    <div className="dash-post-meta">
-                      <span>❤️ {p.likesCount||0}</span>
-                      <span>💬 {p.commentsCount||0}</span>
+              <div className="mt-12 pt-8 border-t border-white/5 flex justify-end">
+                <Link to="/profile/edit" className="flex items-center gap-2 text-xs font-black text-primary uppercase tracking-widest hover:underline">
+                  Optimize Credentials <ArrowUpRight size={14} />
+                </Link>
+              </div>
+              <div className="auth-bg-glow" style={{ top: '-30%', right: '-30%', width: '100%', height: '100%', opacity: 0.03 }} />
+            </section>
+
+            {/* Active Engagement Pipeline */}
+            <section className="glass-surface p-8 rounded-[32px] border-white/5 shadow-xl">
+              <div className="flex-between mb-10">
+                <div className="flex items-center gap-3">
+                  <Target size={22} className="text-primary" />
+                  <h3 className="text-lg font-bold text-white">Active Pipeline</h3>
+                </div>
+                <Link to="/jobs" className="text-[10px] font-black text-primary uppercase hover:underline tracking-widest">Explore Board</Link>
+              </div>
+
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(2)].map((_, i) => <div key={i} className="skeleton-shimmer h-24 rounded-3xl" />)}
+                </div>
+              ) : data?.applications?.length > 0 ? (
+                <div className="space-y-4">
+                  {data.applications.slice(0, 4).map(app => (
+                    <div key={app._id} className="p-5 bg-void/40 rounded-3xl border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:border-primary/40 transition-all group">
+                      <div className="flex items-center gap-5 min-w-0">
+                        <div className="w-14 h-14 rounded-2xl bg-void border border-white/5 flex-center overflow-hidden shrink-0 group-hover:border-primary/20 transition-all p-1">
+                          {app.jobId?.postedBy?.orgLogo ? <img src={app.jobId.postedBy.orgLogo} alt="" className="w-full h-full object-cover rounded-xl" /> : <Briefcase size={24} className="text-primary" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-white text-base group-hover:text-primary transition-colors truncate mb-1">{app.jobId?.title}</p>
+                          <p className="text-[10px] text-muted font-black uppercase tracking-widest">{app.jobId?.postedBy?.orgName}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-8">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-[9px] text-muted font-black uppercase tracking-widest mb-1">Status</p>
+                          <p className={`text-[10px] font-bold uppercase tracking-tighter ${app.status === 'accepted' ? 'text-green-400' : app.status === 'rejected' ? 'text-red-400' : 'text-primary'}`}>{app.status}</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-void border border-white/5 flex-center text-muted group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
+                          <ChevronRight size={20} />
+                        </div>
+                      </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-void/20 rounded-3xl border border-dashed border-white/10">
+                  <div className="w-16 h-16 bg-void rounded-full border border-white/5 flex-center text-muted mx-auto mb-4 opacity-30">
+                    <Briefcase size={32} />
                   </div>
-                ))}
+                  <h4 className="text-white font-bold">No Active Applications</h4>
+                  <p className="text-xs text-secondary mt-2 max-w-[200px] mx-auto">Your career pipeline is currently empty. Start engaging with roles on the board.</p>
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* Strategic Sidebar Column */}
+          <aside className="space-y-8">
+            
+            {/* Ecosystem Discovery */}
+            <section className="glass-surface p-8 rounded-[32px] relative overflow-hidden border-indigo-500/10">
+              <div className="auth-bg-glow" style={{ top: '-10%', left: '-10%', width: '120%', height: '120%', opacity: 0.1 }} />
+              <Zap size={32} className="text-primary mb-6 relative z-10" />
+              <h4 className="text-base font-bold text-white mb-3 relative z-10">Ecosystem Discovery</h4>
+              <p className="text-xs text-secondary font-medium leading-relaxed mb-10 relative z-10">
+                AI-curated opportunities and elite organizations matching your professional profile.
+              </p>
+              <Link to="/discover" className="btn btn-primary btn-full py-4 rounded-2xl shadow-primary font-black uppercase tracking-widest text-[10px] relative z-10">
+                Launch Discovery
+              </Link>
+            </section>
+
+            {/* Quick Share Intel */}
+            <section className="glass-surface p-8 rounded-[32px] border-white/5">
+              <h4 className="text-xs font-black text-muted uppercase tracking-widest mb-8 flex items-center gap-3">
+                <Activity size={18} className="text-primary" /> Share Pulse
+              </h4>
+              <textarea 
+                className="w-full bg-void/50 border border-white/5 rounded-2xl p-5 text-sm text-white font-medium outline-none focus:border-primary/30 transition-all min-h-[140px] resize-none" 
+                placeholder="Broadcast a victory or professional milestone..."
+              />
+              <button className="btn btn-secondary btn-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest mt-6 border-white/5 hover:border-primary/20 transition-all">
+                Broadcast Intel
+              </button>
+            </section>
+
+            {/* Verification Incentive */}
+            <section className="p-6 bg-void/40 rounded-[32px] border border-dashed border-white/10 flex items-center gap-5 group cursor-pointer hover:border-primary/20 transition-all">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-all shadow-lg">
+                <Award size={28} />
               </div>
-            ) : (
-              <div className="dash-empty">
-                <p>Share your first post and let the community know you!</p>
-                <Link to="/feed" className="dash-card-action" style={{ justifyContent: 'center', marginTop: 12 }}>Go to Feed</Link>
+              <div className="min-w-0">
+                <p className="text-xs font-black text-white uppercase tracking-tighter">Verified Tier</p>
+                <p className="text-[10px] text-muted font-medium truncate">Link social nodes for badge.</p>
               </div>
-            )}
-          </motion.div>
+              <ChevronRight size={18} className="text-muted ml-auto group-hover:text-primary transition-all" />
+            </section>
+          </aside>
 
         </div>
       </div>
       <BottomNav />
+    </div>
+  );
+}
 
-      <style>{`
-        .dash-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        .dash-container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
-        .dash-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
-        .dash-header h1 { font-size: 1.8rem; margin-bottom: 4px; }
-        .dash-subtitle { color: var(--text-muted); font-size: 0.9rem; }
-        .dash-header-actions { display: flex; gap: 10px; align-items: center; }
-        .dash-header-btn { padding: 9px 18px; border-radius: 10px; font-family: var(--font-display); font-size: 0.88rem; font-weight: 700; text-decoration: none; border: 1px solid var(--border); color: var(--text-secondary); transition: all 0.2s; }
-        .dash-header-btn:hover { border-color: var(--saffron); color: var(--saffron); }
-        .dash-header-btn--primary { background: var(--saffron); color: white; border-color: var(--saffron); }
-        .dash-header-btn--primary:hover { background: var(--saffron-light); color: white; }
-
-        .dash-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-        @media (max-width: 768px) { .dash-stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        .dash-stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; cursor: default; }
-        .dash-stat-card::before { content:''; position:absolute; top:0; right:0; width:80px; height:80px; background:var(--accent-bg, rgba(255,107,0,0.06)); border-radius:50%; transform:translate(20px,-20px); }
-        .dash-stat-icon { color: var(--accent, var(--saffron)); margin-bottom: 12px; }
-        .dash-stat-value { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--text-white); line-height: 1; margin-bottom: 4px; }
-        .dash-stat-label { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-
-        .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        @media (max-width: 768px) { .dash-grid { grid-template-columns: 1fr; } }
-        .dash-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-        .dash-card-header { display: flex; align-items: center; justify-content: space-between; }
-        .dash-card-header h3 { font-size: 1rem; color: var(--text-white); }
-
-        .dash-progress-bar { height: 8px; background: var(--bg-input); border-radius: 4px; overflow: hidden; }
-        .dash-progress-fill { height: 100%; border-radius: 4px; }
-
-        .dash-checklist { display: flex; flex-direction: column; gap: 10px; }
-        .dash-check-item { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
-        .dash-check-cta { color: var(--electric); font-size: 0.78rem; font-weight: 700; margin-left: auto; }
-
-        .dash-card-action { display: flex; align-items: center; gap: 6px; color: var(--saffron); font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; text-decoration: none; margin-top: auto; }
-        .dash-card-action:hover { color: var(--saffron-light); }
-
-        .dash-app-list { display: flex; flex-direction: column; gap: 10px; }
-        .dash-app-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-input); border-radius: 12px; }
-        .dash-app-logo { width: 40px; height: 40px; border-radius: 10px; background: var(--bg-base); border: 1px solid var(--border-dim); display: flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; overflow: hidden; }
-        .dash-app-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .dash-app-title { font-weight: 600; color: var(--text-primary); font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .dash-app-org { font-size: 0.75rem; color: var(--text-muted); }
-        .dash-status { padding: 3px 10px; border-radius: 20px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; flex-shrink: 0; }
-        .dash-status--submitted { background: rgba(255,107,0,0.1); color: var(--saffron); }
-        .dash-status--reviewed { background: rgba(0,229,255,0.1); color: var(--electric); }
-        .dash-status--accepted { background: rgba(19,136,8,0.1); color: var(--india-green); }
-        .dash-status--rejected { background: rgba(255,68,68,0.1); color: #ff4444; }
-
-        .dash-game-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-input); border-radius: 10px; }
-        .dash-game-icon { font-size: 1.3rem; }
-        .badge-tier { background: rgba(255,107,0,0.15); color: var(--saffron); font-family: var(--font-mono); font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; flex-shrink: 0; }
-
-        .dash-post-row { padding: 12px 14px; background: var(--bg-input); border-radius: 10px; }
-        .dash-post-text { font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
-        .dash-post-meta { display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-muted); }
-
-        .dash-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 0; color: var(--text-muted); font-size: 0.88rem; }
-      `}</style>
+function CheckItem({ label, done }) {
+  return (
+    <div className="flex items-center gap-4 p-4 bg-void/50 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
+      <div className={`w-6 h-6 rounded-xl flex-center shrink-0 shadow-sm transition-all ${done ? 'bg-primary text-white' : 'bg-white/5 text-muted border border-white/5'}`}>
+        {done ? <CheckCircle size={14} /> : <div className="w-2 h-2 rounded-full bg-muted/40" />}
+      </div>
+      <span className={`text-xs font-bold transition-colors ${done ? 'text-white' : 'text-muted group-hover:text-secondary'}`}>{label}</span>
     </div>
   );
 }

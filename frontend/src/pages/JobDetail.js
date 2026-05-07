@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, MapPin, Briefcase, Clock, Calendar, Users, Target,
-  CheckCircle2, PlusCircle, MonitorSmartphone, Share2, CornerUpRight
+  CheckCircle2, PlusCircle, MonitorSmartphone, Share2, CornerUpRight,
+  ShieldCheck, Gem, Building2, ExternalLink
 } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
 import toast from 'react-hot-toast';
@@ -16,15 +17,11 @@ export default function JobDetail() {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const { isUser, isAuthenticated, user } = useAuth();
-  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     jobsAPI.getById(id)
       .then(r => {
         setJob(r.data.data);
-        if (isUser && user) {
-          // Check if user already applied (needs a separate API call in a real app, assuming false for now unless we fetch user's apps)
-        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -36,12 +33,14 @@ export default function JobDetail() {
   };
 
   if (loading) return (
-    <div className="job-detail-shell">
-      <div className="job-detail-container">
-        <div className="skeleton" style={{ height: 200, borderRadius: 16, marginBottom: 24 }} />
-        <div className="job-grid">
-          <div className="skeleton" style={{ height: 400, borderRadius: 16 }} />
-          <div className="skeleton" style={{ height: 300, borderRadius: 16 }} />
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: 1000 }}>
+        <div className="skeleton-shimmer rounded-2xl" style={{ height: 200, marginBottom: 24 }} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-6">
+            <div className="skeleton-shimmer rounded-2xl" style={{ height: 400 }} />
+          </div>
+          <div className="skeleton-shimmer rounded-2xl" style={{ height: 300 }} />
         </div>
       </div>
       <BottomNav />
@@ -49,230 +48,252 @@ export default function JobDetail() {
   );
 
   if (!job) return (
-    <div className="job-detail-shell flex-center" style={{ minHeight: '80vh', flexDirection: 'column' }}>
-      <Briefcase size={48} style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
-      <h2 style={{ color: 'var(--text-secondary)' }}>Job Not Found</h2>
-      <Link to="/jobs" className="btn btn-ghost mt-4">Back to Jobs</Link>
+    <div className="page-shell flex-center flex-col text-center">
+      <div className="p-6 bg-void rounded-full border mb-4">
+        <Briefcase size={48} className="text-muted" />
+      </div>
+      <h2 className="h2">Opening Not Found</h2>
+      <p className="text-secondary mt-2">The role you are looking for might have been closed or removed.</p>
+      <Link to="/jobs" className="btn btn-primary mt-6">Browse Other Openings</Link>
     </div>
   );
 
   return (
-    <div className="job-detail-shell">
-      <div className="job-detail-container">
-
-        {/* Top Nav */}
-        <div className="job-top-nav">
-          <button onClick={() => navigate(-1)} className="back-btn">
-            <ArrowLeft size={18} /> Back
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: 1000 }}>
+        
+        {/* Navigation Bar */}
+        <div className="flex-between mb-8">
+          <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
+            <ArrowLeft size={18} /> Back to Openings
           </button>
-          <button onClick={handleShare} className="share-btn">
-            <Share2 size={16} /> Share
-          </button>
+          <div className="flex gap-2">
+            <button onClick={handleShare} className="btn btn-secondary btn-sm gap-2">
+              <Share2 size={16} /> Share
+            </button>
+          </div>
         </div>
 
-        <div className="job-grid">
-          {/* ── Main Content ── */}
-          <div className="job-main">
-            {/* Header Card */}
-            <motion.div className="job-header-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="job-header-top">
-                <div className="job-logo-large">
-                  {job.postedBy?.orgLogo ? <img src={job.postedBy.orgLogo} alt="" /> : <Briefcase size={32} />}
+        <div className="job-detail-grid">
+          {/* Main Content Area */}
+          <div className="job-detail-main">
+            {/* Header Hero Card */}
+            <motion.div 
+              className="glass-surface p-8 rounded-3xl mb-6 relative overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="auth-bg-glow" style={{ opacity: 0.1, top: '-20%', right: '-10%' }} />
+              
+              <div className="flex-between wrap gap-6 items-start">
+                <div className="flex gap-6 items-start">
+                  <div className="job-logo-lg glass-surface p-1">
+                    {job.postedBy?.orgLogo ? (
+                      <img src={job.postedBy.orgLogo} alt={job.postedBy?.orgName} className="rounded-xl w-full h-full object-cover" />
+                    ) : (
+                      <Building2 size={32} className="text-muted" />
+                    )}
+                  </div>
+                  <div>
+                    <h1 className="h2" style={{ lineHeight: 1.1 }}>{job.title}</h1>
+                    <div className="flex items-center gap-3 mt-3">
+                      <Link to={`/org/${job.postedBy?._id}`} className="text-primary font-semibold flex items-center gap-1 hover:underline">
+                        {job.postedBy?.orgName} <ExternalLink size={14} />
+                      </Link>
+                      <span className="dot" />
+                      <span className="text-secondary text-sm flex items-center gap-1">
+                        <MapPin size={14} /> {job.location?.state || 'Remote'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="job-title-large">{job.title}</h1>
-                  <Link to={`/org/${job.postedBy?._id}`} className="job-org-link">
-                    {job.postedBy?.orgName}
-                  </Link>
+                
+                <div className="flex flex-col gap-2 items-end hide-mobile">
+                  <span className="chip chip-indigo">
+                    <Gem size={14} /> Verified Opening
+                  </span>
+                  <span className="text-xs text-muted">Posted {new Date(job.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
 
-              <div className="job-badges">
-                {job.gameName && <span className="badge badge-saffron">🎮 {job.gameName}</span>}
-                {job.workType && <span className="badge badge-electric"><Briefcase size={14} /> {job.workType}</span>}
-                {job.locationType && <span className="badge badge-green"><MapPin size={14} /> {job.locationType}</span>}
+              <div className="flex gap-3 mt-8 wrap">
+                <span className="tag tag-indigo">{job.gameName || 'Esports'}</span>
+                <span className="tag tag-slate">{job.workType}</span>
+                <span className="tag tag-slate">{job.locationType}</span>
               </div>
             </motion.div>
 
-            {/* Details Section */}
-            <motion.div className="job-section-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <h3 className="section-title">About the Role</h3>
-              <p className="job-description">{job.description}</p>
-            </motion.div>
-
-            {job.mustHaves?.length > 0 && (
-              <motion.div className="job-section-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                <h3 className="section-title">Must Have <Target size={18} className="text-saffron" style={{ marginLeft: 8 }} /></h3>
-                <ul className="req-list">
-                  {job.mustHaves.map((req, i) => (
-                    <li key={i}><CheckCircle2 size={18} className="text-saffron flex-shrink-0" /> <span>{req}</span></li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
-
-            {job.niceToHaves?.length > 0 && (
-              <motion.div className="job-section-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <h3 className="section-title">Nice to Have <PlusCircle size={18} className="text-electric" style={{ marginLeft: 8 }} /></h3>
-                <ul className="req-list">
-                  {job.niceToHaves.map((req, i) => (
-                    <li key={i}><PlusCircle size={18} className="text-electric flex-shrink-0" /> <span>{req}</span></li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
-
-            {(job.deviceRequirements?.requiredDevice || job.deviceRequirements?.minRam || job.deviceRequirements?.minStorage) && (
-              <motion.div className="job-section-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-                <h3 className="section-title">Hardware Requirements <MonitorSmartphone size={18} className="text-purple-light" style={{ marginLeft: 8 }} /></h3>
-                <div className="hardware-grid">
-                  {job.deviceRequirements.requiredDevice && (
-                    <div className="hw-item">
-                      <span className="hw-label">Device</span>
-                      <span className="hw-value">{Array.isArray(job.deviceRequirements.requiredDevice) ? job.deviceRequirements.requiredDevice.join(', ') : job.deviceRequirements.requiredDevice}</span>
-                    </div>
-                  )}
-                  {job.deviceRequirements.minStorage && (
-                    <div className="hw-item">
-                      <span className="hw-label">Storage</span>
-                      <span className="hw-value">{job.deviceRequirements.minStorage}</span>
-                    </div>
-                  )}
-                  {job.deviceRequirements.minRam && (
-                    <div className="hw-item">
-                      <span className="hw-label">RAM</span>
-                      <span className="hw-value">{job.deviceRequirements.minRam}</span>
-                    </div>
-                  )}
+            {/* Description & Requirements */}
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <section className="glass-surface p-8 rounded-3xl">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <ShieldCheck size={20} className="text-primary" /> About the Position
+                </h3>
+                <div className="prose text-secondary leading-relaxed whitespace-pre-wrap">
+                  {job.description}
                 </div>
-              </motion.div>
-            )}
+              </section>
+
+              {job.mustHaves?.length > 0 && (
+                <section className="glass-surface p-8 rounded-3xl">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                    <Target size={20} className="text-primary" /> Core Requirements
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {job.mustHaves.map((req, i) => (
+                      <div key={i} className="flex gap-3 items-start p-4 bg-void rounded-2xl border">
+                        <CheckCircle2 size={18} className="text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-sm font-medium">{req}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {job.niceToHaves?.length > 0 && (
+                <section className="glass-surface p-8 rounded-3xl">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                    <PlusCircle size={20} className="text-indigo-400" /> Nice to Haves
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {job.niceToHaves.map((req, i) => (
+                      <div key={i} className="flex gap-3 items-start p-4 bg-void rounded-2xl border border-dashed">
+                        <PlusCircle size={18} className="text-indigo-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-secondary">{req}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {(job.deviceRequirements?.requiredDevice || job.deviceRequirements?.minRam) && (
+                <section className="glass-surface p-8 rounded-3xl">
+                  <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                    <MonitorSmartphone size={20} className="text-primary" /> Hardware Specifications
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-4 bg-void rounded-2xl border text-center">
+                      <span className="text-xs text-muted uppercase tracking-wider font-bold">Platform</span>
+                      <p className="mt-1 font-bold text-white">{job.deviceRequirements.requiredDevice || 'Any'}</p>
+                    </div>
+                    <div className="p-4 bg-void rounded-2xl border text-center">
+                      <span className="text-xs text-muted uppercase tracking-wider font-bold">Minimum RAM</span>
+                      <p className="mt-1 font-bold text-white">{job.deviceRequirements.minRam || '8GB'}</p>
+                    </div>
+                    <div className="p-4 bg-void rounded-2xl border text-center">
+                      <span className="text-xs text-muted uppercase tracking-wider font-bold">Storage</span>
+                      <p className="mt-1 font-bold text-white">{job.deviceRequirements.minStorage || 'N/A'}</p>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </motion.div>
           </div>
 
-          {/* ── Sidebar ── */}
-          <div className="job-sidebar">
-            <motion.div className="job-apply-card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+          {/* Sticky Sidebar Action Card */}
+          <aside className="job-detail-sidebar">
+            <motion.div 
+              className="glass-surface p-6 rounded-3xl sticky top-24 shadow-2xl"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               {isUser ? (
-                <Link to={`/jobs/${id}/apply`} className="job-apply-btn">
-                  <span>Apply Now</span>
-                  <CornerUpRight size={18} />
+                <Link to={`/jobs/${id}/apply`} className="btn btn-primary btn-lg btn-full shadow-primary mb-6">
+                  Apply for this Role <CornerUpRight size={18} />
                 </Link>
               ) : !isAuthenticated ? (
-                <Link to="/login" className="job-apply-btn job-apply-btn--login">
-                  <span>Login to Apply</span>
+                <Link to="/login" className="btn btn-secondary btn-lg btn-full mb-6">
+                  Sign in to Apply
                 </Link>
               ) : null}
 
-              <div className="job-meta-list">
-                <div className="job-meta-item">
-                  <div className="job-meta-icon"><MapPin size={16} /></div>
-                  <div className="job-meta-text">
-                    <span className="label">Location</span>
-                    <span className="value">{job.location?.state || 'Anywhere'}</span>
+              <div className="space-y-6">
+                <div className="flex gap-4 items-center">
+                  <div className="w-10 h-10 rounded-xl bg-void border flex-center text-primary">
+                    <Clock size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted font-bold uppercase tracking-wide">Work Type</p>
+                    <p className="text-sm font-semibold text-white">{job.workType} • {job.locationType}</p>
                   </div>
                 </div>
-                <div className="job-meta-item">
-                  <div className="job-meta-icon"><Briefcase size={16} /></div>
-                  <div className="job-meta-text">
-                    <span className="label">Work Type</span>
-                    <span className="value">{job.workType} ({job.locationType})</span>
+
+                <div className="flex gap-4 items-center">
+                  <div className="w-10 h-10 rounded-xl bg-void border flex-center text-primary">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted font-bold uppercase tracking-wide">Apply By</p>
+                    <p className="text-sm font-semibold text-white">
+                      {job.deadline ? new Date(job.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Open until filled'}
+                    </p>
                   </div>
                 </div>
+
+                <div className="flex gap-4 items-center">
+                  <div className="w-10 h-10 rounded-xl bg-void border flex-center text-primary">
+                    <Users size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted font-bold uppercase tracking-wide">Competition</p>
+                    <p className="text-sm font-semibold text-white">{job.applicantCount || 0} Professionals Applied</p>
+                  </div>
+                </div>
+                
                 {job.salary?.type && job.salary.type !== 'Unpaid' && (
-                  <div className="job-meta-item">
-                    <div className="job-meta-icon">💰</div>
-                    <div className="job-meta-text">
-                      <span className="label">Compensation</span>
-                      <span className="value">
-                        {job.salary.type}
-                        {job.salary.range?.min && ` • ₹${job.salary.range.min} - ₹${job.salary.range.max}`}
-                      </span>
+                  <div className="flex gap-4 items-center p-4 bg-void rounded-2xl border border-indigo-500/20">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex-center text-indigo-400">
+                      💰
                     </div>
-                  </div>
-                )}
-                {job.deadline && (
-                  <div className="job-meta-item">
-                    <div className="job-meta-icon"><Calendar size={16} /></div>
-                    <div className="job-meta-text">
-                      <span className="label">Application Deadline</span>
-                      <span className="value" style={{ color: 'var(--saffron)' }}>
-                        {new Date(job.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+                    <div>
+                      <p className="text-xs text-muted font-bold uppercase tracking-wide">Compensation</p>
+                      <p className="text-sm font-bold text-white">
+                        {job.salary.type} {job.salary.range?.min && ` • ₹${job.salary.range.min} - ₹${job.salary.range.max}`}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
-
-              <div className="job-stats">
-                <div className="job-stat-pill">
-                  <Users size={14} />
-                  <span>{job.applicantCount || 0} Applicants</span>
-                </div>
-                <div className="job-stat-pill">
-                  <Clock size={14} />
-                  <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
-                </div>
+              
+              <div className="mt-8 pt-6 border-t text-center">
+                <p className="text-xs text-muted">ID: {id}</p>
               </div>
             </motion.div>
-          </div>
+          </aside>
         </div>
       </div>
       <BottomNav />
 
       <style>{`
-        .job-detail-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        .job-detail-container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+        .job-detail-grid {
+          display: grid;
+          grid-template-columns: 1fr 340px;
+          gap: 32px;
+          align-items: start;
+        }
 
-        .job-top-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        .back-btn, .share-btn { display: flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--border-dim); color: var(--text-secondary); padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .back-btn:hover, .share-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); border-color: var(--border); }
+        .job-logo-lg {
+          width: 80px;
+          height: 80px;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-        .job-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
-        @media (max-width: 860px) { .job-grid { grid-template-columns: 1fr; } .job-sidebar { order: -1; } }
+        @media (max-width: 860px) {
+          .job-detail-grid { grid-template-columns: 1fr; }
+          .job-detail-sidebar { order: -1; }
+          .hide-mobile { display: none; }
+        }
 
-        .job-main { display: flex; flex-direction: column; gap: 16px; }
-        
-        .job-header-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
-        .job-header-top { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
-        @media (max-width: 600px) { .job-header-top { flex-direction: column; align-items: flex-start; gap: 16px; } }
-        .job-logo-large { width: 80px; height: 80px; border-radius: 16px; background: var(--bg-input); border: 1px solid var(--border-dim); display: flex; align-items: center; justify-content: center; color: var(--text-muted); overflow: hidden; flex-shrink: 0; }
-        .job-logo-large img { width: 100%; height: 100%; object-fit: cover; }
-        .job-title-large { font-size: 2rem; font-weight: 800; color: var(--text-white); margin-bottom: 6px; line-height: 1.2; }
-        .job-org-link { color: var(--text-secondary); font-size: 1.1rem; font-weight: 600; text-decoration: none; transition: color 0.2s; }
-        .job-org-link:hover { color: var(--saffron); text-decoration: underline; }
-        
-        .job-badges { display: flex; flex-wrap: wrap; gap: 10px; }
-        .job-badges .badge { padding: 6px 14px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
-
-        .job-section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
-        .section-title { display: flex; align-items: center; font-size: 1.25rem; font-weight: 700; color: var(--text-white); margin-bottom: 20px; border-bottom: 1px solid var(--border-dim); padding-bottom: 12px; }
-        .job-description { color: var(--text-secondary); font-size: 1rem; line-height: 1.75; white-space: pre-wrap; }
-
-        .req-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
-        .req-list li { display: flex; align-items: flex-start; gap: 12px; color: var(--text-primary); font-size: 0.95rem; line-height: 1.5; }
-
-        .hardware-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        .hw-item { background: var(--bg-input); border: 1px solid var(--border-dim); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
-        .hw-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
-        .hw-value { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
-
-        .job-sidebar { position: sticky; top: 96px; }
-        .job-apply-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-card); }
-        
-        .job-apply-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; background: linear-gradient(135deg, var(--saffron), var(--saffron-dark)); color: white; border-radius: 12px; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 20px rgba(255,107,0,0.3); margin-bottom: 24px; }
-        .job-apply-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,0,0.4); border: none; color: white;}
-        .job-apply-btn--login { background: transparent; border: 1.5px solid var(--electric); color: var(--electric); box-shadow: none; }
-        .job-apply-btn--login:hover { background: rgba(0,229,255,0.1); box-shadow: 0 0 16px rgba(0,229,255,0.2); border-color: var(--electric);}
-
-        .job-meta-list { display: flex; flex-direction: column; gap: 20px; margin-bottom: 24px; }
-        .job-meta-item { display: flex; align-items: flex-start; gap: 12px; }
-        .job-meta-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; }
-        .job-meta-text { display: flex; flex-direction: column; gap: 2px; }
-        .job-meta-text .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
-        .job-meta-text .value { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
-
-        .job-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-dim); }
-        .job-stat-pill { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-dim); border-radius: 20px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; }
+        .prose p { margin-bottom: 1.5rem; }
       `}</style>
     </div>
   );

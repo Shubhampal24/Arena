@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { usersAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MapPin, Link as LinkIcon, Share2, Mail, MessageSquare, Edit3,
+  MapPin, Share2, Mail, MessageSquare, Edit3,
   Award, Gamepad2, PlaySquare, Target, UserPlus, Eye, Youtube,
-  Instagram, Twitter, Twitch, Globe, Medal
+  Instagram, Twitter, Twitch, Globe, Medal, ShieldCheck, 
+  ExternalLink, Verified, Zap, Calendar, Building2, ChevronRight
 } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
+import toast from 'react-hot-toast';
 
 export default function Profile() {
   const { username } = useParams();
@@ -22,324 +24,428 @@ export default function Profile() {
       .catch(() => setLoad(false));
   }, [username]);
 
-  if (loading) return <div className="page flex-center" style={{ height: '80vh' }}><div className="skeleton" style={{ width: 120, height: 120, borderRadius: '50%' }} /></div>;
-  if (!profile) return <div className="page flex-center" style={{ height: '80vh' }}><h2>Player not found</h2></div>;
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Profile link copied!');
+  };
+
+  if (loading) return (
+    <div className="page-shell">
+      <div className="skeleton-shimmer h-[300px] w-full" />
+      <div className="container" style={{ maxWidth: 1000, marginTop: -80 }}>
+        <div className="flex flex-col md:flex-row gap-8 items-center md:items-end mb-12 px-6">
+          <div className="skeleton-shimmer w-36 h-36 rounded-[40px] border-4 border-void" />
+          <div className="space-y-4 flex-1 pb-4">
+            <div className="skeleton-shimmer w-64 h-10 rounded-xl" />
+            <div className="skeleton-shimmer w-40 h-6 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-8">
+            <div className="skeleton-shimmer h-48 rounded-[32px]" />
+            <div className="skeleton-shimmer h-96 rounded-[32px]" />
+          </div>
+          <div className="skeleton-shimmer h-[500px] rounded-[32px]" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!profile) return (
+    <div className="page-shell flex-center flex-col text-center">
+      <div className="w-20 h-20 bg-void rounded-full border flex-center text-muted mb-6 opacity-30">
+        <Target size={40} />
+      </div>
+      <h2 className="h2 mb-2">Entity Not Found</h2>
+      <p className="text-secondary font-medium">The professional identity profile you are searching for is not active in this node.</p>
+      <Link to="/discover" className="btn btn-primary mt-8 px-8 py-4 rounded-2xl shadow-primary font-black uppercase tracking-widest text-xs">Explore Ecosystem</Link>
+    </div>
+  );
 
   const isOwn = me?.username === username;
   const social = profile.social || {};
 
   const getSocialIcon = (key) => {
     switch (key) {
-      case 'youtube': return <Youtube size={16} />;
-      case 'instagram': return <Instagram size={16} />;
-      case 'twitter': return <Twitter size={16} />;
-      case 'twitch': return <Twitch size={16} />;
-      case 'discord': return <MessageSquare size={16} />;
-      default: return <Globe size={16} />;
+      case 'youtube': return <Youtube size={18} />;
+      case 'instagram': return <Instagram size={18} />;
+      case 'twitter': return <Twitter size={18} />;
+      case 'twitch': return <Twitch size={18} />;
+      case 'discord': return <MessageSquare size={18} />;
+      default: return <Globe size={18} />;
     }
   };
 
   return (
-    <div className="profile-shell">
+    <div className="page-shell p-0">
       
-      {/* ── Banner ── */}
-      <div className="profile-banner">
-        <div className="banner-grid-overlay" />
+      {/* High-Fidelity Banner Section */}
+      <div className="relative h-[320px] bg-void overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-transparent to-void" />
+        <div className="absolute top-[-50%] left-[-10%] w-[120%] h-[200%] bg-radial-gradient opacity-[0.08] pointer-events-none" />
+        <div className="banner-noise" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-void to-transparent" />
       </div>
 
-      <div className="profile-container">
+      <div className="container relative" style={{ maxWidth: 1000, marginTop: -100 }}>
         
-        {/* ── Header ── */}
-        <div className="profile-header-section">
-          <div className="profile-header-left">
-            <div className="profile-avatar-large">
-              {profile.avatar ? <img src={profile.avatar} alt="" /> : <span>{profile.displayName?.[0]?.toUpperCase()}</span>}
-            </div>
-            <div className="profile-info-block">
-              <div className="profile-title-row">
-                <h1>{profile.displayName}</h1>
-                {profile.openToWork && <span className="badge badge-green">Open to Work</span>}
+        {/* Profile Identity Core */}
+        <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-8 mb-12 px-6 relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-8 text-center md:text-left">
+            <motion.div 
+               initial={{ opacity: 0, scale: 0.9 }} 
+               animate={{ opacity: 1, scale: 1 }}
+               className="w-36 h-36 rounded-[48px] bg-void border-[6px] border-void shadow-2xl relative group overflow-hidden"
+            >
+              {profile.avatar ? (
+                <img src={profile.avatar} alt={profile.displayName} className="w-full h-full object-cover rounded-[42px]" />
+              ) : (
+                <div className="w-full h-full bg-primary/10 flex-center text-primary font-black text-5xl uppercase tracking-tighter rounded-[42px]">{profile.displayName?.[0]}</div>
+              )}
+              {profile.profileScore >= 90 && (
+                <div className="absolute bottom-2 right-2 w-10 h-10 bg-primary rounded-2xl border-4 border-void flex-center text-white shadow-xl">
+                  <ShieldCheck size={20} />
+                </div>
+              )}
+            </motion.div>
+            
+            <div className="pb-4">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                <h1 className="text-4xl font-black text-white tracking-tighter">{profile.displayName}</h1>
+                <Verified size={24} className="text-primary" />
               </div>
-              <p className="profile-role-text">{profile.primaryRole}</p>
-              {profile.tagline && <p className="profile-tagline">“{profile.tagline}”</p>}
-              <div className="profile-meta-row">
-                <span>📍 {profile.city ? `${profile.city}, ` : ''}{profile.state || 'India'}</span>
-                <span className="dot">·</span>
-                <span>@{profile.username}</span>
+              <div className="flex items-center justify-center md:justify-start gap-4 text-secondary font-bold text-sm tracking-wide">
+                <span className="text-primary">@{profile.username}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                <span className="flex items-center gap-1.5"><MapPin size={16} className="text-primary" /> {profile.state || 'India'}</span>
               </div>
             </div>
           </div>
-          <div className="profile-header-actions">
+
+          <div className="flex items-center gap-3 pb-4">
             {isOwn ? (
-              <Link to="/profile/edit" className="btn-edit-profile">
-                <Edit3 size={16} /> Edit Profile
+              <Link to="/profile/edit" className="btn btn-primary px-8 py-4 rounded-2xl gap-2 font-black uppercase tracking-widest text-xs shadow-primary">
+                <Edit3 size={18} /> Edit Identity
               </Link>
             ) : (
               <>
-                <button className="btn-connect"><UserPlus size={16} /> Connect</button>
-                <button className="btn-message"><Mail size={16} /> Message</button>
+                <button className="btn btn-primary px-8 py-4 rounded-2xl gap-2 font-black uppercase tracking-widest text-xs shadow-primary"><UserPlus size={18} /> Connect</button>
+                <button className="btn btn-secondary px-8 py-4 rounded-2xl gap-2 font-black uppercase tracking-widest text-xs"><Mail size={18} /> Message</button>
               </>
             )}
-            <button className="btn-share"><Share2 size={16} /></button>
+            <button onClick={handleShare} className="w-14 h-14 rounded-2xl bg-void border border-white/5 flex-center text-secondary hover:text-white hover:border-primary/40 transition-all shadow-xl">
+              <Share2 size={20} />
+            </button>
           </div>
         </div>
 
-        {/* ── Score & Stats ── */}
-        <div className="profile-stats-card">
-          <div className="score-section">
-            <div className="score-header">
-              <span className="score-label">Profile Strength</span>
-              <span className="score-value">{profile.profileScore}%</span>
+        {/* Tactical Performance Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 px-2">
+          <div className="sm:col-span-2 glass-surface p-7 rounded-[32px] flex items-center gap-8 group hover:border-primary transition-all shadow-xl relative overflow-hidden">
+            <div className="relative w-16 h-16 flex-center shrink-0">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-white/5" />
+                <circle 
+                  cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" 
+                  strokeDasharray={176} 
+                  strokeDashoffset={176 - (176 * profile.profileScore) / 100}
+                  className="text-primary"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute text-sm font-black tracking-tighter text-white">{profile.profileScore}%</span>
             </div>
-            <div className="score-bar-bg">
-              <motion.div
-                className="score-bar-fill"
-                initial={{ width: 0 }}
-                animate={{ width: `${profile.profileScore}%` }}
-                transition={{ duration: 1, delay: 0.2 }}
-                style={{ background: profile.profileScore >= 80 ? 'var(--india-green)' : profile.profileScore >= 50 ? 'var(--electric)' : 'var(--saffron)' }}
-              />
+            <div>
+              <p className="text-[10px] text-muted font-black uppercase tracking-widest mb-1">Identity Authority</p>
+              <p className="text-sm text-secondary font-medium leading-relaxed">Composite score of ecosystem activity and professional verified milestones.</p>
             </div>
+            <div className="auth-bg-glow" style={{ top: '-40%', left: '-40%', width: '100%', height: '100%', opacity: 0.05 }} />
           </div>
-          <div className="stats-divider" />
-          <div className="stats-group">
-            <div className="stat-item">
-              <div className="stat-number"><Eye size={18} className="text-electric" /> {profile.profileViews || 0}</div>
-              <div className="stat-label">Profile Views</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number"><Award size={18} className="text-saffron" /> {profile.followersCount || 0}</div>
-              <div className="stat-label">Followers</div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Layout Grid ── */}
-        <div className="profile-grid">
           
-          {/* Main Column */}
-          <div className="profile-main">
-            
-            {profile.bio && (
-              <motion.div className="profile-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <h3 className="card-title">About</h3>
-                <p className="about-text">{profile.bio}</p>
-              </motion.div>
-            )}
+          <div className="glass-surface p-7 rounded-[32px] text-center group hover:border-primary transition-all shadow-xl relative overflow-hidden">
+            <p className="text-[10px] text-muted font-black uppercase tracking-widest mb-2">Network Size</p>
+            <div className="flex flex-center gap-3">
+              <Award size={22} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+              <p className="text-3xl font-black text-white tracking-tighter">{profile.followersCount || 0}</p>
+            </div>
+            <div className="auth-bg-glow" style={{ top: '-60%', right: '-30%', width: '100%', height: '100%', opacity: 0.05 }} />
+          </div>
+          
+          <div className="glass-surface p-7 rounded-[32px] text-center group hover:border-primary transition-all shadow-xl relative overflow-hidden">
+            <p className="text-[10px] text-muted font-black uppercase tracking-widest mb-2">Ecosystem Views</p>
+            <div className="flex flex-center gap-3">
+              <Eye size={22} className="text-primary group-hover:scale-110 transition-transform" />
+              <p className="text-3xl font-black text-white tracking-tighter">{profile.profileViews || 0}</p>
+            </div>
+            <div className="auth-bg-glow" style={{ bottom: '-60%', left: '-30%', width: '100%', height: '100%', opacity: 0.05 }} />
+          </div>
+        </div>
 
+        {/* Primary Content Stream */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-24 px-2">
+          
+          {/* Main Dossier Column */}
+          <div className="md:col-span-2 space-y-12">
+            
+            {/* Bio Dossier */}
+            <section className="glass-surface p-10 rounded-[40px] border-white/5 shadow-xl relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-8">
+                <ShieldCheck size={24} className="text-primary" />
+                <h3 className="text-xl font-bold text-white tracking-tight">Professional Dossier</h3>
+              </div>
+              <p className="text-secondary font-medium leading-loose text-lg whitespace-pre-wrap mb-10">
+                {profile.bio || "No tactical professional brief provided. The candidate's background remains classified."}
+              </p>
+              {profile.tagline && (
+                <div className="p-6 bg-void/50 rounded-3xl border border-white/5 border-l-4 border-l-primary shadow-inner">
+                  <p className="italic text-base text-white/90 font-medium leading-relaxed">"{profile.tagline}"</p>
+                </div>
+              )}
+              <div className="auth-bg-glow" style={{ top: '-20%', right: '-20%', width: '80%', height: '80%', opacity: 0.03 }} />
+            </section>
+
+            {/* Strategic Disciplines */}
             {profile.gameProfiles?.length > 0 && (
-              <motion.div className="profile-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <h3 className="card-title"><Gamepad2 size={20} className="text-electric" /> Game Profiles</h3>
-                <div className="game-profiles-list">
-                  {profile.gameProfiles.map(g => (
-                    <div key={g._id} className="game-profile-item">
-                      <div className="gp-header">
-                        <span className="gp-name">{g.gameName}</span>
-                        {g.currentTier && <span className="gp-tier">{g.currentTier}</span>}
+              <section className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                   <Gamepad2 size={24} className="text-primary" />
+                   <h3 className="text-xl font-bold text-white tracking-tight">Ecosystem Disciplines</h3>
+                </div>
+                <div className="space-y-6">
+                  {profile.gameProfiles.map((g, i) => (
+                    <motion.div 
+                      key={g._id} 
+                      className="glass-surface p-8 rounded-[36px] relative overflow-hidden group hover:border-primary/40 transition-all shadow-xl"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <div className="flex-between items-start mb-8">
+                        <div className="flex items-center gap-5">
+                          <div className="w-14 h-14 rounded-2xl bg-void border border-white/5 flex-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-lg">
+                            <Zap size={28} />
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-bold text-white mb-1">{g.gameName}</h4>
+                            <p className="text-[10px] text-muted font-black uppercase tracking-widest">{g.device || 'Advanced Hardware'}</p>
+                          </div>
+                        </div>
+                        {g.currentTier && (
+                          <div className="px-5 py-2 bg-primary/10 border border-primary/20 rounded-2xl shadow-inner">
+                            <span className="text-xs font-black text-primary uppercase tracking-widest">{g.currentTier}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="gp-roles">
-                        {g.inGameRoles?.map(r => <span key={r} className="badge badge-glass">{r}</span>)}
-                        {g.device && <span className="badge badge-saffron">{g.device}</span>}
+                      
+                      <div className="flex gap-3 flex-wrap mb-8">
+                        {g.inGameRoles?.map(role => (
+                          <span key={role} className="px-4 py-1.5 bg-void/50 border border-white/5 rounded-full text-[10px] font-black text-secondary uppercase tracking-widest">{role}</span>
+                        ))}
                       </div>
+
                       {g.stats && (
-                        <div className="gp-stats">
-                          {g.stats.kd && <span>K/D: <strong>{g.stats.kd}</strong></span>}
-                          {g.stats.winRate && <span>WR: <strong>{g.stats.winRate}%</strong></span>}
-                          {g.stats.matches && <span>Matches: <strong>{g.stats.matches}</strong></span>}
+                        <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/5 relative z-10">
+                          {g.stats.kd && (
+                            <div className="text-center">
+                              <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-1">Efficiency (K/D)</p>
+                              <p className="text-lg font-black text-white tracking-tighter">{g.stats.kd}</p>
+                            </div>
+                          )}
+                          {g.stats.winRate && (
+                            <div className="text-center">
+                              <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-1">Engagement Success</p>
+                              <p className="text-lg font-black text-white tracking-tighter">{g.stats.winRate}%</p>
+                            </div>
+                          )}
+                          {g.stats.matches && (
+                            <div className="text-center">
+                              <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-1">Total Operations</p>
+                              <p className="text-lg font-black text-white tracking-tighter">{g.stats.matches}</p>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
+                      <div className="auth-bg-glow" style={{ bottom: '-30%', right: '-10%', width: '40%', height: '100%', opacity: 0.05 }} />
+                    </motion.div>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
 
+            {/* Achievement Archive */}
             {profile.achievements?.length > 0 && (
-              <motion.div className="profile-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <h3 className="card-title"><Medal size={20} className="text-saffron" /> Achievements</h3>
-                <div className="achievements-list">
+              <section className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                   <Medal size={24} className="text-indigo-400" />
+                   <h3 className="text-xl font-bold text-white tracking-tight">Achievement Archive</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
                   {profile.achievements.map((a, i) => (
-                    <div key={i} className="achievement-item">
-                      <div className="achievement-icon">🏆</div>
-                      <div>
-                        <div className="achievement-title">{a.title}</div>
-                        {a.description && <div className="achievement-desc">{a.description}</div>}
-                        {a.date && <div className="achievement-date">{new Date(a.date).getFullYear()}</div>}
+                    <div key={i} className="glass-surface p-6 rounded-[28px] flex gap-6 items-center group hover:border-indigo-500/40 transition-all shadow-lg">
+                      <div className="w-16 h-16 rounded-[20px] bg-indigo-500/10 border border-indigo-500/20 flex-center text-indigo-400 shrink-0 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-inner">
+                        <Award size={32} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors truncate">{a.title}</h4>
+                        <p className="text-sm text-secondary font-medium line-clamp-1">{a.description}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="px-3 py-1 bg-void rounded-xl border border-white/5 text-[10px] font-black text-muted uppercase tracking-widest">
+                           {a.date ? new Date(a.date).getFullYear() : 'Active'}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
 
+            {/* Visual Intel Portfolio */}
             {profile.portfolio?.length > 0 && (
-              <motion.div className="profile-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <h3 className="card-title"><PlaySquare size={20} className="text-purple-light" /> Highlights & Portfolio</h3>
-                <div className="portfolio-grid">
+              <section className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                   <PlaySquare size={24} className="text-primary" />
+                   <h3 className="text-xl font-bold text-white tracking-tight">Visual Intel</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {profile.portfolio.map((p, i) => (
-                    <a key={i} href={p.url} target="_blank" rel="noreferrer" className="portfolio-item">
-                      <div className="portfolio-thumb">
-                        {p.type === 'video' ? <PlaySquare size={32} /> : p.type === 'image' ? <Target size={32} /> : <LinkIcon size={32} />}
+                    <a key={i} href={p.url} target="_blank" rel="noreferrer" className="block glass-surface group rounded-[32px] overflow-hidden hover:border-primary/40 transition-all shadow-xl relative">
+                      <div className="aspect-video bg-void flex-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-all" />
+                        {p.type === 'video' ? <PlaySquare size={48} className="text-primary/40 group-hover:text-primary group-hover:scale-110 transition-all z-10" /> : <Globe size={48} className="text-secondary/40 group-hover:text-secondary group-hover:scale-110 transition-all z-10" />}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="portfolio-info">
-                        <span className="portfolio-title truncate">{p.title || p.type}</span>
+                      <div className="p-6 flex-between items-center relative z-10 bg-void/50">
+                        <span className="text-sm font-black text-white uppercase tracking-widest truncate max-w-[80%]">{p.title || 'Classified Intel'}</span>
+                        <div className="w-8 h-8 rounded-lg bg-void border border-white/5 flex-center text-muted group-hover:text-primary group-hover:border-primary/40 transition-all">
+                           <ExternalLink size={16} />
+                        </div>
                       </div>
                     </a>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
 
           </div>
 
-          {/* Sidebar Column */}
-          <div className="profile-sidebar">
-            <motion.div className="profile-side-card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <h4 className="side-title">Overview</h4>
-              <div className="side-list">
-                {profile.primaryGame && (
-                  <div className="side-item">
-                    <span className="side-label">Main Game</span>
-                    <span className="side-value">{profile.primaryGame}</span>
+          {/* Tactical Sidebar Column */}
+          <aside className="space-y-8">
+            
+            {/* Career Context Dossier */}
+            <section className="glass-surface p-8 rounded-[36px] border-white/5 shadow-xl space-y-10 relative overflow-hidden">
+              <h4 className="text-[10px] text-muted font-black uppercase tracking-[0.2em] mb-2">Professional Identity</h4>
+              
+              <div className="space-y-8">
+                <div className="flex gap-5 items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-void border border-white/5 flex-center text-primary shadow-lg">
+                    <Gamepad2 size={22} />
                   </div>
-                )}
-                {profile.primaryRole && (
-                  <div className="side-item">
-                    <span className="side-label">Role</span>
-                    <span className="side-value">{profile.primaryRole}</span>
+                  <div>
+                    <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-1">Primary Discipline</p>
+                    <p className="text-base font-bold text-white tracking-tight">{profile.primaryGame || 'Multi-Identity'}</p>
                   </div>
-                )}
-                {profile.availability && (
-                  <div className="side-item">
-                    <span className="side-label">Availability</span>
-                    <span className="side-value">{profile.availability}</span>
+                </div>
+
+                <div className="flex gap-5 items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-void border border-white/5 flex-center text-primary shadow-lg">
+                    <ShieldCheck size={22} />
                   </div>
-                )}
+                  <div>
+                    <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-1">Ecosystem Role</p>
+                    <p className="text-base font-bold text-white tracking-tight">{profile.primaryRole || 'Contractor'}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-5 items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-void border border-white/5 flex-center text-primary shadow-lg">
+                    <Calendar size={22} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-1">Current Availability</p>
+                    <p className="text-base font-bold text-white tracking-tight">{profile.availability || 'Classified Status'}</p>
+                  </div>
+                </div>
+
                 {profile.lookingFor?.length > 0 && (
-                  <div className="side-item">
-                    <span className="side-label">Looking For</span>
-                    <div className="side-tags">
-                      {profile.lookingFor.map(l => <span key={l} className="side-tag">{l}</span>)}
+                  <div className="pt-8 border-t border-white/5">
+                    <p className="text-[9px] text-muted uppercase font-black tracking-widest mb-4">Strategic Requirements</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.lookingFor.map(l => (
+                        <span key={l} className="px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-xl text-[10px] font-black text-primary uppercase tracking-tighter">
+                          {l}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
-            </motion.div>
+              <div className="auth-bg-glow" style={{ bottom: '-30%', left: '-20%', width: '100%', height: '100%', opacity: 0.05 }} />
+            </section>
 
+            {/* Global Digital Nodes */}
             {Object.keys(social).some(k => social[k]) && (
-              <motion.div className="profile-side-card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                <h4 className="side-title">Social Links</h4>
-                <div className="social-links-list">
+              <section className="glass-surface p-8 rounded-[36px] border-white/5 shadow-xl space-y-8">
+                <h4 className="text-[10px] text-muted font-black uppercase tracking-[0.2em]">Digital Nodes</h4>
+                <div className="grid grid-cols-1 gap-3">
                   {Object.entries(social).map(([k, v]) => v && (
-                    <a key={k} href={v.startsWith('http') ? v : `https://${v}`} target="_blank" rel="noreferrer" className="social-link-item">
-                      {getSocialIcon(k)}
-                      <span className="social-link-text">{k.charAt(0).toUpperCase() + k.slice(1)}</span>
+                    <a 
+                      key={k} 
+                      href={v.startsWith('http') ? v : `https://${v}`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="flex items-center gap-4 p-4 bg-void/50 rounded-2xl border border-white/5 hover:border-primary/40 transition-all group text-secondary hover:text-white shadow-inner"
+                    >
+                      <div className="text-primary group-hover:scale-110 transition-transform">{getSocialIcon(k)}</div>
+                      <span className="text-sm font-black uppercase tracking-widest capitalize">{k}</span>
+                      <div className="ml-auto w-6 h-6 rounded-lg bg-void border border-white/5 flex-center group-hover:border-primary/20 transition-all">
+                        <ChevronRight size={14} className="opacity-40 group-hover:opacity-100" />
+                      </div>
                     </a>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
+
+            {/* Contract Authority Card */}
+            <section className="glass-surface p-8 rounded-[36px] text-center border-indigo-500/10 shadow-xl relative overflow-hidden">
+              <div className="auth-bg-glow" style={{ top: '-10%', right: '-10%', width: '120%', height: '120%', opacity: 0.08 }} />
+              <Building2 size={32} className="text-muted mx-auto mb-6 relative z-10" />
+              <p className="text-[10px] text-muted uppercase font-black tracking-widest mb-2 relative z-10">Contractual Authority</p>
+              <div className="relative z-10">
+                {profile.openToWork ? (
+                  <div className="inline-flex items-center gap-2 px-6 py-2 bg-primary/10 border border-primary/20 rounded-full text-sm font-black text-primary uppercase tracking-[0.1em] shadow-lg">
+                     Free Identity
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-black text-secondary uppercase tracking-[0.1em]">
+                     Encrypted Node
+                  </div>
+                )}
+                <p className="text-[11px] text-secondary font-medium mt-6 leading-relaxed">
+                  {profile.openToWork ? "This professional identity is currently open for strategic ecosystem alignment." : "Identity is currently committed to a private organization node."}
+                </p>
+              </div>
+            </section>
           </div>
 
         </div>
       </div>
+      
+      <div className="pb-32" />
       <BottomNav />
 
       <style>{`
-        .profile-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        
-        .profile-banner { height: 220px; background: linear-gradient(135deg, rgba(255,107,0,0.2), rgba(0,229,255,0.1), rgba(123,47,190,0.15)); border-bottom: 1px solid var(--border-dim); position: relative; overflow: hidden; }
-        .banner-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,107,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,107,0,0.05) 1px, transparent 1px); background-size: 40px 40px; }
-
-        .profile-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; position: relative; top: -60px; }
-
-        .profile-header-section { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 32px; }
-        
-        .profile-header-left { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
-        .profile-avatar-large { width: 130px; height: 130px; border-radius: 50%; background: linear-gradient(135deg, var(--saffron-dark), var(--saffron)); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 3.5rem; font-weight: 800; color: white; border: 4px solid var(--bg-void); box-shadow: 0 12px 32px rgba(255,107,0,0.2); overflow: hidden; flex-shrink: 0; }
-        .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .profile-info-block { padding-bottom: 8px; }
-        .profile-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
-        .profile-title-row h1 { font-size: 2.2rem; font-weight: 800; color: var(--text-white); line-height: 1.1; }
-        .profile-role-text { color: var(--saffron); font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
-        .profile-tagline { color: var(--text-secondary); font-size: 0.95rem; font-style: italic; margin-bottom: 8px; }
-        .profile-meta-row { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.85rem; }
-
-        .profile-header-actions { display: flex; gap: 10px; margin-bottom: 8px; }
-        .btn-edit-profile, .btn-connect, .btn-message, .btn-share { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; padding: 10px 20px; border-radius: 12px; transition: all 0.2s; cursor: pointer; text-decoration: none; }
-        .btn-edit-profile { border: 1.5px solid var(--saffron); color: var(--saffron); }
-        .btn-edit-profile:hover { background: rgba(255,107,0,0.1); }
-        .btn-connect { background: linear-gradient(135deg, var(--electric), #0099bb); color: var(--bg-void); border: none; }
-        .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,229,255,0.3); }
-        .btn-message { background: transparent; border: 1.5px solid var(--border-dim); color: var(--text-primary); }
-        .btn-message:hover { background: rgba(255,255,255,0.05); }
-        .btn-share { padding: 10px; background: transparent; border: 1px solid transparent; color: var(--text-muted); }
-        .btn-share:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); border-color: var(--border-dim); }
-
-        .profile-stats-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 32px; margin-bottom: 24px; box-shadow: var(--shadow-card); }
-        @media (max-width: 600px) { .profile-stats-card { flex-direction: column; gap: 24px; align-items: stretch; } .stats-divider { display: none; } }
-        
-        .score-section { flex: 1; }
-        .score-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .score-label { font-family: var(--font-display); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
-        .score-value { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; color: var(--text-white); }
-        .score-bar-bg { height: 8px; background: var(--bg-input); border-radius: 4px; overflow: hidden; }
-        .score-bar-fill { height: 100%; border-radius: 4px; }
-        
-        .stats-divider { width: 1px; height: 40px; background: var(--border-dim); }
-        .stats-group { display: flex; gap: 32px; justify-content: center; }
-        .stat-item { text-align: center; }
-        .stat-number { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-white); margin-bottom: 4px; }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-
-        .profile-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
-        @media (max-width: 860px) { .profile-grid { grid-template-columns: 1fr; } }
-        
-        .profile-main { display: flex; flex-direction: column; gap: 20px; }
-        
-        .profile-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
-        .card-title { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; color: var(--text-white); margin-bottom: 20px; }
-        .about-text { color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; white-space: pre-wrap; }
-
-        .game-profiles-list { display: flex; flex-direction: column; gap: 16px; }
-        .game-profile-item { background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: 12px; padding: 20px; transition: border-color 0.2s; }
-        .game-profile-item:hover { border-color: rgba(0,229,255,0.3); }
-        .gp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .gp-name { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--text-white); }
-        .gp-tier { color: var(--saffron); font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; padding: 4px 10px; background: rgba(255,107,0,0.1); border-radius: 20px; text-transform: uppercase; }
-        .gp-roles { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-        .gp-stats { display: flex; gap: 24px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--border-dim); font-size: 0.85rem; color: var(--text-muted); }
-        .gp-stats strong { color: var(--text-primary); font-family: var(--font-mono); font-weight: 600; margin-left: 4px; }
-
-        .achievements-list { display: flex; flex-direction: column; gap: 12px; }
-        .achievement-item { display: flex; gap: 16px; padding: 16px; background: var(--bg-input); border-radius: 12px; border: 1px solid rgba(255,107,0,0.1); }
-        .achievement-icon { font-size: 1.8rem; line-height: 1; }
-        .achievement-title { font-weight: 700; color: var(--text-white); font-size: 1rem; margin-bottom: 4px; }
-        .achievement-desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; }
-        .achievement-date { color: var(--saffron); font-size: 0.75rem; font-weight: 600; margin-top: 6px; }
-
-        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-        .portfolio-item { display: block; border-radius: 12px; overflow: hidden; background: var(--bg-input); border: 1px solid var(--border-dim); text-decoration: none; transition: transform 0.2s, border-color 0.2s; }
-        .portfolio-item:hover { transform: translateY(-4px); border-color: var(--purple-light); }
-        .portfolio-thumb { height: 120px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
-        .portfolio-info { padding: 12px; }
-        .portfolio-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
-
-        .profile-sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .profile-side-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
-        .side-title { color: var(--text-white); font-size: 1rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-dim); padding-bottom: 10px; }
-        
-        .side-list { display: flex; flex-direction: column; gap: 16px; }
-        .side-item { display: flex; flex-direction: column; gap: 4px; }
-        .side-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
-        .side-value { font-size: 0.95rem; color: var(--text-primary); font-weight: 500; }
-        .side-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-        .side-tag { font-size: 0.75rem; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 20px; color: var(--text-secondary); }
-
-        .social-links-list { display: flex; flex-direction: column; gap: 12px; }
-        .social-link-item { display: flex; align-items: center; gap: 12px; color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; padding: 8px; border-radius: 8px; transition: background 0.2s, color 0.2s; }
-        .social-link-item:hover { background: rgba(255,255,255,0.05); color: var(--text-white); }
+        .banner-noise {
+          position: absolute;
+          inset: 0;
+          opacity: 0.04;
+          pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .bg-radial-gradient {
+          background: radial-gradient(circle at center, var(--primary) 0%, transparent 70%);
+        }
       `}</style>
     </div>
   );

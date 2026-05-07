@@ -4,8 +4,8 @@
   "description": "ArenaX — India's Gaming Career Platform (Monorepo)",
   "private": true,
   "scripts": {
-    "backend":    "cd backend && npm run dev",
-    "frontend":   "cd frontend && npm start",
+    "backend":    "npm run dev --prefix backend",
+    "frontend":   "npm start --prefix frontend",
     "dev":        "concurrently \"npm run backend\" \"npm run frontend\"",
     "install:all":"cd backend && npm install && cd ../frontend && npm install",
     "seed":       "cd backend && npm run seed",

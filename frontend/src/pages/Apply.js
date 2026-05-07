@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import {
   Briefcase, Send, FileText, CheckCircle2, ChevronLeft,
-  AlertCircle, UploadCloud, Video, Target, Link2
+  AlertCircle, UploadCloud, Video, Target, Link2, User, Sparkles
 } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
 
@@ -36,172 +36,162 @@ export default function Apply() {
         portfolioLinks: form.portfolioLinks.split('\n').filter(Boolean),
         gameStats: { currentTier: user?.gameProfiles?.[0]?.currentTier, kd: user?.gameProfiles?.[0]?.stats?.kd },
       });
-      toast.success('Application submitted! Good luck! 🎮');
+      toast.success('Application submitted successfully!');
       navigate('/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to submit application.');
     } finally { setSub(false); }
   };
 
-  if (load) return <div className="page flex-center" style={{ height: '60vh' }}><div className="skeleton" style={{ height: 400, width: '100%', maxWidth: 600, borderRadius: 16 }} /></div>;
+  if (load) return (
+    <div className="page-shell flex-center">
+      <div className="skeleton-shimmer rounded-3xl" style={{ height: 600, width: '100%', maxWidth: 700 }} />
+    </div>
+  );
 
   return (
-    <div className="apply-shell">
-      <div className="apply-container">
-
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: 800 }}>
+        
         {/* Header */}
-        <div className="apply-header">
-          <Link to={`/jobs/${id}`} className="back-link">
-            <ChevronLeft size={16} /> Back to Job
-          </Link>
-          <div className="apply-title-row">
-            <div className="apply-logo">
-              {job?.postedBy?.orgLogo ? <img src={job.postedBy.orgLogo} alt="" /> : <Briefcase size={24} />}
+        <div className="mb-8">
+          <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2 mb-6">
+            <ChevronLeft size={18} /> Back to Job Details
+          </button>
+          
+          <div className="flex gap-6 items-center">
+            <div className="job-logo-lg glass-surface p-1" style={{ width: 64, height: 64 }}>
+              {job?.postedBy?.orgLogo ? (
+                <img src={job.postedBy.orgLogo} alt="" className="rounded-xl w-full h-full object-cover" />
+              ) : (
+                <Briefcase size={24} className="text-muted" />
+              )}
             </div>
             <div>
-              <h1>Apply for <span className="text-saffron">{job?.title}</span></h1>
-              <p className="apply-org">at {job?.postedBy?.orgName}</p>
+              <h1 className="h2">Apply for {job?.title}</h1>
+              <p className="text-secondary font-medium">at {job?.postedBy?.orgName}</p>
             </div>
           </div>
         </div>
 
-        {/* Progress Alert */}
-        <div className="profile-alert">
-          <CheckCircle2 size={18} className="text-india-green" />
-          <span>Your ArenaX Gamer Profile will be attached automatically. Make sure your stats are up to date!</span>
-          <Link to="/profile/edit" className="alert-link">Edit Profile</Link>
+        {/* Info Box */}
+        <div className="glass-surface p-4 rounded-2xl mb-8 flex items-center gap-4 border-indigo-500/20">
+          <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex-center text-indigo-400">
+            <User size={20} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Your Professional Profile will be attached.</p>
+            <p className="text-xs text-muted">Your stats, experience, and achievements are automatically included.</p>
+          </div>
+          <Link to="/profile/edit" className="btn btn-ghost btn-sm text-primary">Update Profile</Link>
         </div>
 
-        {/* Form Card */}
-        <motion.div className="apply-form-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <form onSubmit={handleSubmit} className="apply-form">
+        {/* Application Form */}
+        <motion.div 
+          className="glass-surface p-8 rounded-3xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <form onSubmit={handleSubmit} className="space-y-8">
             
-            <div className="form-section">
-              <h3 className="form-section-title"><FileText size={18} /> Pitch Yourself</h3>
-              
+            <section className="space-y-4">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <FileText size={20} className="text-primary" /> Your Pitch
+              </h3>
               <div className="form-group">
-                <label className="form-label">Cover Note <span className="req">*</span></label>
+                <label className="form-label">Cover Note <span className="text-danger">*</span></label>
                 <textarea
-                  className="form-input"
-                  rows={5}
-                  placeholder="Tell the org why you're the right fit. Highlight your synergy, tier, experience, and what you bring to the roster..."
+                  className="input min-h-[160px]"
+                  placeholder="Tell the hiring manager why you're the perfect fit for this role. Highlight your specific skills and experiences..."
                   value={form.coverNote}
                   onChange={e => set('coverNote', e.target.value)}
                   required
                 />
-                <span className="input-hint">Make it stand out. Orgs read hundreds of these.</span>
+                <p className="text-xs text-muted mt-2">Write a compelling case for yourself. Be professional and concise.</p>
               </div>
-            </div>
+            </section>
 
-            <div className="form-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-group">
                 <label className="form-label">Availability</label>
-                <select className="form-input form-select" value={form.availability} onChange={e => set('availability', e.target.value)}>
-                  <option value="">Select availability</option>
-                  {['Full-Time', 'Part-Time', 'Bootcamp', 'WFH Only', 'Weekends Only', 'Tournaments Only'].map(a => <option key={a} value={a}>{a}</option>)}
+                <select className="input" value={form.availability} onChange={e => set('availability', e.target.value)}>
+                  <option value="">Select your availability</option>
+                  {['Immediate', '1-2 Weeks', '1 Month', 'Part-Time Only', 'Contract Only'].map(a => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Discord ID</label>
-                <input className="form-input" placeholder="username#0000" value={form.discordId} onChange={e => set('discordId', e.target.value)} />
+                <label className="form-label">Discord ID / Contact</label>
+                <input 
+                  className="input" 
+                  placeholder="username#0000" 
+                  value={form.discordId} 
+                  onChange={e => set('discordId', e.target.value)} 
+                />
               </div>
             </div>
 
-            <div className="form-divider" />
-
-            <div className="form-section">
-              <h3 className="form-section-title"><Target size={18} /> Media & Links</h3>
-              
+            <section className="space-y-4 pt-6 border-t">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <Target size={20} className="text-primary" /> Professional Assets
+              </h3>
               <div className="form-group">
-                <label className="form-label"><Link2 size={14} style={{ marginRight: 6 }} /> Portfolio / Highlight Links</label>
+                <label className="form-label flex-between">
+                  <span><Link2 size={14} className="inline mr-1" /> Portfolio / Highlight Links</span>
+                  <span className="text-xs text-muted">One URL per line</span>
+                </label>
                 <textarea
-                  className="form-input form-input--mono"
+                  className="input font-mono text-sm"
                   rows={4}
-                  placeholder="Paste URLs here, one per line (YouTube, Instagram, Tracker.gg, etc.)"
+                  placeholder="https://youtube.com/highlights\nhttps://portfolio.me/pro"
                   value={form.portfolioLinks}
                   onChange={e => set('portfolioLinks', e.target.value)}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label"><Video size={14} style={{ marginRight: 6 }} /> Video Introduction (Optional)</label>
+                <label className="form-label"><Video size={14} className="inline mr-1" /> Video Introduction (Link)</label>
                 <input
-                  className="form-input"
+                  className="input"
                   type="url"
-                  placeholder="https://youtube.com/..."
+                  placeholder="https://vimeo.com/..."
                   value={form.videoIntroUrl}
                   onChange={e => set('videoIntroUrl', e.target.value)}
                 />
-                <span className="input-hint">A 60s intro video drastically increases your chances.</span>
+                <p className="text-xs text-muted mt-2">Highly recommended. A short 30-60s intro video can double your chances.</p>
               </div>
-            </div>
+            </section>
 
             {job?.applicationProcess?.trialMatch && (
-              <div className="trial-alert">
-                <AlertCircle size={20} className="text-electric" />
+              <div className="p-5 bg-indigo-500/5 rounded-2xl border border-indigo-500/20 flex gap-4">
+                <Sparkles size={24} className="text-indigo-400 flex-shrink-0" />
                 <div>
-                  <h4>Trial Match Required</h4>
-                  <p>This role requires passing an in-game evaluation. If shortlisted, the org will contact you to schedule a trial match.</p>
+                  <h4 className="text-sm font-bold text-white">Trial Phase Required</h4>
+                  <p className="text-xs text-secondary mt-1 leading-relaxed">
+                    This position involves a practical evaluation. If your profile is shortlisted, you will be invited to participate in a trial match or assessment.
+                  </p>
                 </div>
               </div>
             )}
 
-            <button type="submit" className="submit-btn" disabled={submitting}>
-              {submitting ? (
-                <span className="btn-loading">Submitting...</span>
-              ) : (
-                <><Send size={18} /> Send Application</>
-              )}
-            </button>
+            <div className="pt-6">
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-lg btn-full shadow-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Submitting Application...' : (
+                  <span className="flex-center gap-2">
+                    <Send size={18} /> Submit Application
+                  </span>
+                )}
+              </button>
+            </div>
           </form>
         </motion.div>
       </div>
       <BottomNav />
-
-      <style>{`
-        .apply-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        .apply-container { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
-
-        .apply-header { margin-bottom: 24px; }
-        .back-link { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; text-decoration: none; margin-bottom: 20px; transition: color 0.2s; }
-        .back-link:hover { color: var(--text-primary); }
-        .apply-title-row { display: flex; align-items: center; gap: 16px; }
-        .apply-logo { width: 56px; height: 56px; border-radius: 14px; background: var(--bg-input); border: 1px solid var(--border-dim); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-        .apply-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .apply-header h1 { font-size: 1.8rem; line-height: 1.2; margin-bottom: 4px; }
-        .apply-org { color: var(--text-secondary); font-size: 1rem; }
-
-        .profile-alert { display: flex; align-items: center; gap: 12px; background: rgba(19,136,8,0.06); border: 1px solid rgba(19,136,8,0.2); padding: 14px 16px; border-radius: 12px; margin-bottom: 24px; font-size: 0.88rem; color: var(--text-primary); }
-        .alert-link { color: var(--india-green); font-weight: 700; text-decoration: underline; margin-left: auto; flex-shrink: 0; }
-
-        .apply-form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-card); }
-        .apply-form { display: flex; flex-direction: column; gap: 28px; }
-
-        .form-section { display: flex; flex-direction: column; gap: 16px; }
-        .form-section-title { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; color: var(--text-white); padding-bottom: 8px; border-bottom: 1px solid var(--border-dim); }
-
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-        
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-label { display: flex; align-items: center; font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
-        .req { color: #ff4444; margin-left: 4px; }
-        .form-input { width: 100%; padding: 12px 14px; background: var(--bg-input); border: 1.5px solid var(--border-dim); border-radius: 12px; font-family: var(--font-body); font-size: 0.95rem; color: var(--text-primary); outline: none; transition: all 0.2s; resize: vertical; }
-        .form-input:focus { border-color: var(--saffron); box-shadow: 0 0 0 3px rgba(255,107,0,0.1); }
-        .form-input--mono { font-family: var(--font-mono); font-size: 0.88rem; }
-        .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23606078' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-        .input-hint { font-size: 0.75rem; color: var(--text-muted); }
-
-        .form-divider { height: 1px; background: var(--border-dim); }
-
-        .trial-alert { display: flex; gap: 16px; background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.2); border-radius: 12px; padding: 20px; align-items: flex-start; }
-        .trial-alert h4 { color: var(--electric); margin-bottom: 4px; font-size: 1rem; }
-        .trial-alert p { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; }
-
-        .submit-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, var(--saffron), var(--saffron-dark)); color: white; font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 20px rgba(255,107,0,0.3); }
-        .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,0,0.4); }
-        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-      `}</style>
     </div>
   );
 }

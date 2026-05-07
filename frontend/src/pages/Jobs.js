@@ -3,8 +3,24 @@ import { Link } from 'react-router-dom';
 import { jobsAPI, gamesAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Briefcase, ChevronRight, X, Filter } from 'lucide-react';
+import { Search, MapPin, Briefcase, ChevronRight, X, Filter, Sparkles, Building2, Clock, Globe, Zap } from 'lucide-center';
+import { LucideIcon } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
+
+// Re-mapping icons for consistency
+import { 
+  Search as SearchIcon, 
+  MapPin as MapPinIcon, 
+  Briefcase as BriefcaseIcon, 
+  ChevronRight as ChevronIcon, 
+  X as XIcon, 
+  Filter as FilterIcon, 
+  Sparkles as SparklesIcon, 
+  Building2 as BuildingIcon, 
+  Clock as ClockIcon, 
+  Globe as GlobeIcon, 
+  Zap as ZapIcon 
+} from 'lucide-react';
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -15,7 +31,7 @@ export default function Jobs() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ game: '', state: '', workType: '', locationType: '', search: '' });
   const [showFilters, setShowFilters] = useState(false);
-  const { isOrg, isAuthenticated } = useAuth();
+  const { isOrg } = useAuth();
 
   useEffect(() => {
     gamesAPI.getAll().then(r => setGames(r.data.data)).catch(() => {});
@@ -39,175 +55,207 @@ export default function Jobs() {
   const locationTypes = ['Bootcamp (Onsite)', 'Work From Home', 'Hybrid', 'Travel Required'];
 
   return (
-    <div className="jobs-shell">
-      <div className="jobs-container">
-        {/* Header */}
-        <div className="jobs-header">
-          <div>
-            <h1>Gaming <span style={{ color: 'var(--saffron)' }}>Opportunities</span></h1>
-            <p className="jobs-subtitle">{total} openings in India's esports ecosystem</p>
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: 1000 }}>
+        
+        {/* Header Section */}
+        <header className="mb-12">
+          <div className="flex-between wrap gap-8">
+            <div className="max-w-2xl">
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full inline-flex items-center gap-2 mb-4"
+              >
+                <SparklesIcon size={12} className="text-primary" />
+                <span className="text-[10px] font-black text-primary tracking-widest uppercase">Global Board</span>
+              </motion.div>
+              <h1 className="h1 mb-2">Find your <span className="text-gradient">Next Career Move</span></h1>
+              <p className="text-secondary font-medium">Discover elite professional openings in India's premier gaming ecosystem.</p>
+            </div>
+            {isOrg && (
+              <Link to="/post-job" className="btn btn-primary px-8 py-4 rounded-xl shadow-primary gap-2">
+                <BriefcaseIcon size={18} /> Post an Opening
+              </Link>
+            )}
           </div>
-          {isOrg && <Link to="/post-job" className="btn btn-primary">Post a Job</Link>}
-        </div>
+        </header>
 
-        {/* Search Bar */}
-        <div className="jobs-search-bar">
-          <Search size={20} className="search-icon" />
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by role, org, or keywords..."
-            value={filters.search}
-            onChange={e => setF('search', e.target.value)}
-          />
-          <button className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)}>
-            <Filter size={18} />
-            <span className="hidden sm:inline">Filters</span>
-          </button>
-        </div>
-
-        {/* Filters Panel */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="filters-panel"
+        {/* Global Search & Filter Module */}
+        <section className="glass-surface p-2 rounded-[28px] mb-12 shadow-xl">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 flex items-center gap-3 px-6 bg-void/50 rounded-2xl border border-white/5 focus-within:border-primary/30 transition-all">
+              <SearchIcon size={20} className="text-muted" />
+              <input
+                type="text"
+                placeholder="Search roles, companies, or keywords..."
+                className="w-full bg-transparent border-none outline-none py-4 text-white font-medium"
+                value={filters.search}
+                onChange={e => setF('search', e.target.value)}
+              />
+            </div>
+            <button 
+              className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm transition-all ${showFilters ? 'bg-primary text-white' : 'bg-void/80 text-secondary hover:text-white'}`}
+              onClick={() => setShowFilters(!showFilters)}
             >
-              <select className="filter-select" value={filters.game} onChange={e => setF('game', e.target.value)}>
-                <option value="">All Games</option>
-                {games.map(g => <option key={g.id} value={g.id}>{g.shortName}</option>)}
-              </select>
-              <select className="filter-select" value={filters.state} onChange={e => setF('state', e.target.value)}>
-                <option value="">All States</option>
-                {states.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <select className="filter-select" value={filters.workType} onChange={e => setF('workType', e.target.value)}>
-                <option value="">Work Type</option>
-                {workTypes.map(w => <option key={w} value={w}>{w}</option>)}
-              </select>
-              <select className="filter-select" value={filters.locationType} onChange={e => setF('locationType', e.target.value)}>
-                <option value="">Location</option>
-                {locationTypes.map(l => <option key={l} value={l}>{l}</option>)}
-              </select>
-              {Object.values(filters).some(v => v) && (
-                <button className="clear-filters-btn" onClick={() => { setFilters({ game: '', state: '', workType: '', locationType: '', search: '' }); }}>
-                  Clear Filters <X size={14} />
-                </button>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <FilterIcon size={18} /> Filters
+            </button>
+          </div>
 
-        {/* Job List */}
-        <div className="jobs-list">
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border-t border-white/5 mt-2">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Discipline</label>
+                    <select className="input rounded-xl bg-void border-white/5 text-sm" value={filters.game} onChange={e => setF('game', e.target.value)}>
+                      <option value="">All Games</option>
+                      {games.map(g => <option key={g.id} value={g.id}>{g.shortName}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Location</label>
+                    <select className="input rounded-xl bg-void border-white/5 text-sm" value={filters.state} onChange={e => setF('state', e.target.value)}>
+                      <option value="">All States</option>
+                      {states.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Engagement</label>
+                    <select className="input rounded-xl bg-void border-white/5 text-sm" value={filters.workType} onChange={e => setF('workType', e.target.value)}>
+                      <option value="">Any Type</option>
+                      {workTypes.map(w => <option key={w} value={w}>{w}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest px-1">Environment</label>
+                    <select className="input rounded-xl bg-void border-white/5 text-sm" value={filters.locationType} onChange={e => setF('locationType', e.target.value)}>
+                      <option value="">Any Mode</option>
+                      {locationTypes.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                  </div>
+                </div>
+                {Object.values(filters).some(v => v) && (
+                  <div className="px-6 pb-6 flex justify-end">
+                    <button className="text-xs font-bold text-danger hover:underline flex items-center gap-1" onClick={() => setFilters({ game: '', state: '', workType: '', locationType: '', search: '' })}>
+                      <XIcon size={14} /> Clear Selection
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+
+        {/* Board Meta */}
+        <div className="flex-between mb-6 px-4">
+          <p className="text-xs font-bold text-muted uppercase tracking-wider">
+            Total active positions: <span className="text-primary">{total}</span>
+          </p>
+          <div className="flex gap-4">
+             {/* Optional sort control could go here */}
+          </div>
+        </div>
+
+        {/* Job Listings Grid */}
+        <div className="space-y-4">
           {loading ? (
-            [...Array(5)].map((_, i) => <div key={i} className="skeleton" style={{ height: 110, borderRadius: 12 }} />)
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton-shimmer h-24 rounded-[28px]"></div>
+            ))
           ) : jobs.length === 0 ? (
-            <div className="jobs-empty">
-              <Briefcase size={40} className="empty-icon" />
-              <h3>No jobs found</h3>
-              <p>Try adjusting your search filters to find what you're looking for.</p>
+            <div className="text-center py-20 glass-surface rounded-[32px] border-dashed">
+              <div className="w-16 h-16 bg-void rounded-full border flex-center text-muted mx-auto mb-4 opacity-50">
+                <BriefcaseIcon size={32} />
+              </div>
+              <h3 className="h3">No Matches Found</h3>
+              <p className="text-secondary mt-2">Adjust your filters to explore more opportunities.</p>
             </div>
           ) : (
-            <AnimatePresence>
+            <div className="space-y-4">
               {jobs.map((job, i) => (
-                <motion.div key={job._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                  <Link to={`/jobs/${job._id}`} className="job-row">
-                    <div className="job-row-left">
-                      <div className="job-logo">
-                        {job.postedBy?.orgLogo ? <img src={job.postedBy.orgLogo} alt={job.postedBy.orgName} /> : <Briefcase size={20} />}
+                <motion.div 
+                  key={job._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <Link to={`/jobs/${job._id}`} className="block glass-surface p-5 rounded-[28px] hover:border-primary/40 transition-all group relative overflow-hidden">
+                    <div className="flex-between items-center relative z-10">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-void border border-white/5 flex-center overflow-hidden shrink-0 group-hover:border-primary/20 transition-colors">
+                          {job.postedBy?.orgLogo ? (
+                            <img src={job.postedBy.orgLogo} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <BuildingIcon size={24} className="text-muted" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-white group-hover:text-primary transition-colors">{job.title}</h3>
+                          <div className="flex items-center gap-4 mt-1">
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
+                              <BuildingIcon size={12} className="text-primary" /> {job.postedBy?.orgName}
+                            </span>
+                            <div className="w-1 h-1 rounded-full bg-white/10" />
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
+                              <MapPinIcon size={12} /> {job.location?.state || 'Remote'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="job-info">
-                        <div className="job-title">{job.title}</div>
-                        <div className="job-org-meta">
-                          <span className="job-org-name">{job.postedBy?.orgName}</span>
-                          <span className="dot">·</span>
-                          <span className="job-location"><MapPin size={12} /> {job.location?.state || 'India'}</span>
-                          <span className="dot">·</span>
-                          <span className="job-applicants">{job.applicantCount || 0} applied</span>
+                      
+                      <div className="flex items-center gap-6">
+                        <div className="hidden md-flex flex-col items-end gap-2">
+                          <div className="flex gap-2">
+                             {job.gameName && <span className="px-3 py-1 bg-primary/5 border border-primary/10 rounded-full text-[10px] font-black text-primary uppercase tracking-tighter">{job.gameName}</span>}
+                             {job.workType && <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[10px] font-black text-secondary uppercase tracking-tighter">{job.workType}</span>}
+                          </div>
+                          <p className="text-[10px] text-muted font-bold flex items-center gap-1.5">
+                            <ClockIcon size={10} /> {job.applicantCount || 0} Professional Applicants
+                          </p>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-void border flex-center text-muted group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
+                          <ChevronIcon size={20} />
                         </div>
                       </div>
                     </div>
-                    <div className="job-row-right">
-                      <div className="job-tags">
-                        {job.gameName && <span className="badge badge-saffron">{job.gameName}</span>}
-                        {job.workType && <span className="job-tag job-tag--type">{job.workType}</span>}
-                      </div>
-                      <ChevronRight size={20} className="job-arrow" />
-                    </div>
+                    <div className="auth-bg-glow" style={{ top: '-50%', right: '-10%', width: '30%', height: '200%', opacity: 0.03 }} />
                   </Link>
                 </motion.div>
               ))}
-            </AnimatePresence>
+            </div>
           )}
         </div>
 
-        {/* Pagination */}
+        {/* Board Pagination */}
         {total > 20 && (
-          <div className="jobs-pagination">
-            <button className="btn btn-ghost btn-sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
-            <span>Page {page} of {Math.ceil(total / 20)}</span>
-            <button className="btn btn-primary btn-sm" disabled={page >= Math.ceil(total / 20)} onClick={() => setPage(p => p + 1)}>Next</button>
+          <div className="flex-center gap-6 mt-12 mb-12">
+            <button 
+              className="btn btn-secondary px-6 py-3 rounded-xl font-bold text-sm disabled:opacity-30" 
+              disabled={page === 1} 
+              onClick={() => setPage(p => p - 1)}
+            >
+              Previous
+            </button>
+            <span className="text-xs font-black text-white uppercase tracking-widest">
+              Block <span className="text-primary">{page}</span> / {Math.ceil(total / 20)}
+            </span>
+            <button 
+              className="btn btn-secondary px-6 py-3 rounded-xl font-bold text-sm disabled:opacity-30" 
+              disabled={page >= Math.ceil(total / 20)} 
+              onClick={() => setPage(p => p + 1)}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
       <BottomNav />
-
-      <style>{`
-        .jobs-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        .jobs-container { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
-        
-        .jobs-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
-        .jobs-header h1 { font-size: 2rem; margin-bottom: 4px; color: var(--text-white); }
-        .jobs-subtitle { color: var(--text-muted); font-size: 1rem; }
-
-        .jobs-search-bar { display: flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 6px 12px; margin-bottom: 16px; }
-        .search-icon { color: var(--text-muted); margin-right: 10px; }
-        .search-input { flex: 1; background: transparent; border: none; font-size: 1rem; color: var(--text-primary); outline: none; padding: 8px 0; }
-        .search-input::placeholder { color: var(--text-muted); }
-        
-        .filter-toggle-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-dim); color: var(--text-primary); border-radius: 8px; padding: 8px 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .filter-toggle-btn:hover { background: rgba(255,255,255,0.1); }
-        @media (max-width: 600px) { .hidden.sm\\:inline { display: none; } .filter-toggle-btn { padding: 8px; } }
-
-        .filters-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; overflow: hidden; }
-        .filter-select { appearance: none; background-color: var(--bg-input); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23606078' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; border: 1px solid var(--border-dim); border-radius: 8px; padding: 10px 32px 10px 12px; color: var(--text-primary); font-size: 0.9rem; outline: none; }
-        .filter-select:focus { border-color: var(--saffron); }
-        .clear-filters-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; border: 1px solid #ff4444; color: #ff4444; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .clear-filters-btn:hover { background: rgba(255,68,68,0.1); }
-
-        .jobs-list { display: flex; flex-direction: column; gap: 12px; }
-        
-        .job-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; transition: all 0.2s; }
-        .job-row:hover { background: var(--bg-card-hover); border-color: var(--border-bright); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-        @media (max-width: 600px) { .job-row { flex-direction: column; align-items: flex-start; gap: 16px; } .job-row-right { width: 100%; justify-content: space-between; } }
-        
-        .job-row-left { display: flex; align-items: center; gap: 16px; }
-        .job-logo { width: 48px; height: 48px; border-radius: 12px; background: var(--bg-input); border: 1px solid var(--border-dim); display: flex; align-items: center; justify-content: center; color: var(--text-muted); overflow: hidden; flex-shrink: 0; }
-        .job-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .job-title { font-size: 1.1rem; font-weight: 700; color: var(--text-white); margin-bottom: 6px; }
-        .job-org-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
-        .job-org-name { font-weight: 600; color: var(--text-secondary); }
-        .job-location { display: flex; align-items: center; gap: 4px; }
-        .job-applicants { color: var(--electric); }
-        .dot { color: var(--border-dim); }
-
-        .job-row-right { display: flex; align-items: center; gap: 20px; }
-        .job-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .job-tag { padding: 4px 10px; border-radius: 100px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .job-tag--type { background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.1); }
-        .job-arrow { color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
-        .job-row:hover .job-arrow { color: var(--saffron); transform: translateX(4px); }
-
-        .jobs-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-        .empty-icon { color: var(--text-muted); margin-bottom: 16px; opacity: 0.5; }
-        .jobs-empty h3 { color: var(--text-secondary); margin-bottom: 8px; font-size: 1.2rem; }
-        .jobs-empty p { font-size: 0.95rem; }
-
-        .jobs-pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; color: var(--text-muted); font-size: 0.9rem; }
-      `}</style>
     </div>
   );
 }

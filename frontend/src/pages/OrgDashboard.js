@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Briefcase, Users, Eye, TrendingUp, ChevronRight,
-  PlusCircle, CheckCircle2, Clock, XCircle
+  PlusCircle, CheckCircle2, Clock, XCircle, Building2,
+  BarChart3, UserPlus, Zap, Settings, ArrowUpRight, Sparkles
 } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
 
-const STATUS_ICON = {
-  submitted: <Clock size={14} style={{ color: 'var(--saffron)' }} />,
-  reviewed:  <Eye size={14} style={{ color: 'var(--electric)' }} />,
-  accepted:  <CheckCircle2 size={14} style={{ color: 'var(--india-green)' }} />,
-  rejected:  <XCircle size={14} style={{ color: '#ff4444' }} />,
+const STATUS_CONFIG = {
+  submitted: { icon: <Clock size={14} />, color: '#f59e0b', label: 'Pending' },
+  reviewed:  { icon: <Eye size={14} />, color: 'var(--primary)', label: 'Reviewed' },
+  accepted:  { icon: <CheckCircle2 size={14} />, color: '#10b981', label: 'Accepted' },
+  rejected:  { icon: <XCircle size={14} />, color: '#ef4444', label: 'Rejected' },
 };
 
 export default function OrgDashboard() {
@@ -28,219 +29,211 @@ export default function OrgDashboard() {
   }, []);
 
   const stats = [
-    { label: 'Active Jobs',      value: org?.activeJobs || 0,            icon: <Briefcase size={20}/>, color: 'var(--saffron)' },
-    { label: 'Total Posted',     value: org?.totalJobs || 0,             icon: <TrendingUp size={20}/>, color: 'var(--electric)' },
-    { label: 'Pending Reviews',  value: data?.pendingApplications?.length || 0, icon: <Users size={20}/>, color: 'var(--purple-light)' },
-    { label: 'Profile Views',    value: org?.profileViews || 0,          icon: <Eye size={20}/>, color: 'var(--india-green)' },
+    { label: 'Live Postings', value: org?.activeJobs || 0, icon: <Briefcase size={20}/>, trend: '+12%', color: 'var(--primary)' },
+    { label: 'Active Pipeline', value: data?.pendingApplications?.length || 0, icon: <Users size={20}/>, trend: '+5%', color: '#6366f1' },
+    { label: 'Talent Reach', value: org?.profileViews || 0, icon: <Eye size={20}/>, trend: '+24%', color: '#10b981' },
+    { label: 'Hire Velocity', value: '8.4d', icon: <Zap size={20}/>, trend: '-2d', color: '#f59e0b' },
   ];
 
   return (
-    <div className="org-shell">
-      <div className="org-container">
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: 1100 }}>
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="org-header">
-          <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
-            <div className="org-header-name">
-              {org?.logo
-                ? <img src={org.logo} alt={org.orgName} className="org-header-logo"/>
-                : <div className="org-header-logo-placeholder">{org?.orgName?.[0]}</div>}
-              <div>
-                <h1>{org?.orgName}</h1>
-                <p className="org-header-type">{org?.orgType} · {org?.state}</p>
+        {/* Professional Header Area */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+          <div className="flex items-center gap-6">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} 
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-16 h-16 rounded-[24px] bg-void border border-primary/20 overflow-hidden shadow-2xl shrink-0 group relative"
+            >
+              {org?.logo ? (
+                <img src={org.logo} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-primary/10 flex-center text-primary font-black text-2xl uppercase">{org?.orgName?.[0]}</div>
+              )}
+              <div className="absolute inset-0 bg-primary/5 group-hover:opacity-0 transition-opacity" />
+            </motion.div>
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                 <Sparkles size={14} className="text-primary" />
+                 <span className="text-[10px] font-black text-primary tracking-widest uppercase">Command Center</span>
               </div>
+              <h1 className="h1 leading-none mb-1">Operational <span className="text-gradient">Control</span></h1>
+              <p className="text-secondary font-medium">Enterprise Management Suite for <span className="text-white font-bold">{org?.orgName}</span></p>
             </div>
-          </motion.div>
-          <div className="org-header-actions">
-            <Link to={`/org/${org?.slug}`} className="org-btn org-btn--ghost">View Profile</Link>
-            <Link to="/post-job" className="org-btn org-btn--primary">
-              <PlusCircle size={16}/> Post Job
+          </div>
+          
+          <div className="flex gap-3">
+            <Link to={`/org/${org?.slug}`} className="btn btn-secondary px-6 py-3 rounded-xl gap-2 font-bold text-sm">
+              <Eye size={18} /> Public Profile
+            </Link>
+            <Link to="/post-job" className="btn btn-primary px-8 py-3 rounded-xl shadow-primary gap-2 font-bold text-sm">
+              <PlusCircle size={18} /> New Posting
             </Link>
           </div>
-        </div>
+        </header>
 
-        {/* ── Stats ──────────────────────────────────────────────────────── */}
-        <div className="org-stats-grid">
+        {/* High-Fidelity Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((s, i) => (
             <motion.div
               key={s.label}
-              className="org-stat-card"
+              className="glass-surface p-7 rounded-[32px] relative overflow-hidden group hover:border-primary transition-all"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              whileHover={{ y: -3 }}
+              transition={{ delay: i * 0.1 }}
             >
-              <div className="org-stat-icon" style={{ color: s.color }}>{s.icon}</div>
-              <div className="org-stat-value" style={{ color: s.color }}>{loading ? '–' : s.value}</div>
-              <div className="org-stat-label">{s.label}</div>
+              <div className="flex-between mb-6">
+                <div className="w-11 h-11 rounded-2xl bg-void border border-white/5 flex-center group-hover:bg-primary group-hover:text-white transition-all shadow-lg" style={{ color: s.color }}>
+                  {s.icon}
+                </div>
+                <div className="px-2 py-1 bg-green-400/10 border border-green-400/20 rounded-lg text-[10px] font-black text-green-400">
+                   {s.trend}
+                </div>
+              </div>
+              <h3 className="text-3xl font-black text-white mb-1 tracking-tighter">{loading ? '...' : s.value}</h3>
+              <p className="text-[10px] text-muted font-black uppercase tracking-widest">{s.label}</p>
+              <div className="auth-bg-glow" style={{ top: '-40%', right: '-40%', width: '100%', height: '100%', opacity: 0.05 }} />
             </motion.div>
           ))}
         </div>
 
-        <div className="org-grid">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
+          
+          {/* Central Pipeline Column */}
+          <div className="lg:col-span-2 space-y-8">
+            <section className="glass-surface p-8 rounded-[32px] border-white/5 shadow-xl relative overflow-hidden">
+              <div className="flex-between mb-8">
+                <div className="flex items-center gap-3">
+                  <UserPlus size={22} className="text-primary" />
+                  <h3 className="text-lg font-bold text-white">Talent Pipeline</h3>
+                </div>
+                <div className="text-[10px] font-black text-muted uppercase tracking-widest px-3 py-1 bg-void/50 rounded-full border border-white/5">
+                  Live Stream
+                </div>
+              </div>
 
-          {/* ── Applications ───────────────────────────────────────────────── */}
-          <motion.div className="org-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-            <div className="org-card-header">
-              <h3>Recent Applications</h3>
-              <span className="org-card-count">{data?.pendingApplications?.length || 0} new</span>
-            </div>
-            {loading ? (
-              [...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 60, borderRadius: 10, marginBottom: 10 }}/>)
-            ) : data?.pendingApplications?.length > 0 ? (
-              <div className="org-app-list">
-                {data.pendingApplications.map(app => (
-                  <div key={app._id} className="org-app-item">
-                    <div className="org-app-avatar">
-                      {app.userId?.avatar
-                        ? <img src={app.userId.avatar} alt=""/>
-                        : <span>{app.userId?.displayName?.[0] || '?'}</span>}
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => <div key={i} className="skeleton-shimmer h-24 rounded-3xl" />)}
+                </div>
+              ) : data?.pendingApplications?.length > 0 ? (
+                <div className="space-y-4">
+                  {data.pendingApplications.map((app, i) => (
+                    <motion.div 
+                      key={app._id} 
+                      className="p-5 bg-void/40 rounded-3xl border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:border-primary/40 transition-all cursor-pointer group"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <div className="flex items-center gap-5 min-w-0">
+                        <div className="w-14 h-14 rounded-2xl border border-white/5 overflow-hidden group-hover:border-primary/20 transition-all shrink-0 p-1 bg-void">
+                          {app.userId?.avatar ? <img src={app.userId.avatar} alt="" className="w-full h-full object-cover rounded-xl" /> : <div className="w-full h-full bg-primary/10 flex-center text-primary font-black text-xl">{app.userId?.displayName?.[0]}</div>}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-white text-base group-hover:text-primary transition-colors truncate">{app.userId?.displayName || 'Elite Candidate'}</p>
+                          <p className="text-xs text-secondary font-medium truncate">Applying for <span className="text-white font-bold">{app.jobId?.title || 'Active Role'}</span></p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between sm:justify-end gap-8">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-[9px] text-muted font-black uppercase tracking-widest mb-1">Identity</p>
+                          <p className="text-[11px] font-bold text-white uppercase">{app.userId?.primaryRole || 'Professional'}</p>
+                        </div>
+                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-[20px] border border-white/5 bg-void/50 min-w-[120px] justify-center shadow-inner">
+                          <span style={{ color: STATUS_CONFIG[app.status]?.color }}>{STATUS_CONFIG[app.status]?.icon}</span>
+                          <span className="text-[10px] font-black text-white uppercase tracking-tighter">{STATUS_CONFIG[app.status]?.label}</span>
+                        </div>
+                        <ChevronRight size={20} className="text-muted group-hover:text-primary transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-void/20 rounded-3xl border border-dashed border-white/10">
+                  <div className="w-16 h-16 bg-void rounded-full border border-white/5 flex-center text-muted mx-auto mb-4 opacity-30">
+                    <Users size={32} />
+                  </div>
+                  <h4 className="text-white font-bold">Pipeline is Empty</h4>
+                  <p className="text-xs text-secondary mt-2 max-w-[200px] mx-auto">New talent matches will appear here as they engage with your postings.</p>
+                </div>
+              )}
+              <div className="auth-bg-glow" style={{ top: '-20%', left: '-20%', width: '100%', height: '100%', opacity: 0.03 }} />
+            </section>
+          </div>
+
+          {/* Strategic Insight Column */}
+          <aside className="space-y-8">
+            {/* Active Inventory */}
+            <section className="glass-surface p-8 rounded-[32px] border-white/5 shadow-xl">
+              <div className="flex-between mb-8">
+                <div className="flex items-center gap-3">
+                  <BarChart3 size={20} className="text-primary" />
+                  <h3 className="text-base font-bold text-white">Board Pulse</h3>
+                </div>
+                <Link to="/jobs" className="text-[10px] font-black text-primary uppercase hover:underline tracking-widest">Board</Link>
+              </div>
+
+              <div className="space-y-4">
+                {data?.recentJobs?.map(job => (
+                  <div key={job._id} className="p-5 bg-void/50 rounded-3xl border border-white/5 space-y-4 group hover:border-primary/20 transition-all">
+                    <div className="flex-between items-start">
+                      <h4 className="text-sm font-bold text-white truncate group-hover:text-primary transition-colors max-w-[150px]">{job.title}</h4>
+                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter ${job.isActive ? 'bg-green-400/10 text-green-400 border border-green-400/20' : 'bg-white/5 text-muted border border-white/5'}`}>
+                        {job.isActive ? 'Live' : 'Off'}
+                      </span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="org-app-name">{app.userId?.displayName || 'Applicant'}</div>
-                      <div className="org-app-role">{app.userId?.primaryRole} · {app.jobId?.title}</div>
-                    </div>
-                    <div className="org-app-status">
-                      {STATUS_ICON[app.status]}
-                      <span className={`org-status org-status--${app.status}`}>{app.status}</span>
+                    <div className="flex-between items-end">
+                      <div className="flex gap-5">
+                        <div>
+                          <p className="text-[9px] text-muted font-black uppercase tracking-widest">Intel</p>
+                          <p className="text-[10px] font-bold text-white mt-0.5">{job.applicantCount || 0} Apps</p>
+                        </div>
+                        <div className="w-px h-6 bg-white/5" />
+                        <div>
+                          <p className="text-[9px] text-muted font-black uppercase tracking-widest">Impact</p>
+                          <p className="text-[10px] font-bold text-white mt-0.5">{job.views || 0} View</p>
+                        </div>
+                      </div>
+                      <Link to={`/jobs/${job._id}`} className="w-9 h-9 rounded-xl bg-void border border-white/5 flex-center text-muted hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm">
+                        <ArrowUpRight size={16} />
+                      </Link>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="org-empty">
-                <Users size={32}/>
-                <p>No pending applications</p>
-              </div>
-            )}
-          </motion.div>
+              
+              <button className="btn btn-secondary btn-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest mt-8 border-white/5 hover:border-primary/20">
+                Performance Audit
+              </button>
+            </section>
 
-          {/* ── Active Jobs ─────────────────────────────────────────────────── */}
-          <motion.div className="org-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-            <div className="org-card-header">
-              <h3>Active Job Posts</h3>
-              <Link to="/post-job" style={{ color: 'var(--electric)', fontSize: '0.82rem', fontWeight: 600 }}>+ New</Link>
-            </div>
-            {loading ? (
-              [...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 60, borderRadius: 10, marginBottom: 10 }}/>)
-            ) : data?.recentJobs?.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {data.recentJobs.map(job => (
-                  <Link key={job._id} to={`/jobs/${job._id}`} className="org-job-row">
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="org-job-title">{job.title}</div>
-                      <div className="org-job-meta">
-                        <span>👥 {job.applicantCount || 0} applicants</span>
-                        <span>👁️ {job.views || 0} views</span>
-                        {job.gameName && <span>🎮 {job.gameName}</span>}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', align: 'center', gap: 8, flexShrink: 0 }}>
-                      <span className={`org-job-badge ${job.isActive ? 'org-job-badge--active' : 'org-job-badge--closed'}`}>
-                        {job.isActive ? 'Active' : 'Closed'}
-                      </span>
-                      <ChevronRight size={16} style={{ color: 'var(--text-muted)' }}/>
-                    </div>
-                  </Link>
-                ))}
+            {/* Entity Authority Card */}
+            <section className="glass-surface p-8 rounded-[32px] text-center relative overflow-hidden border-indigo-500/10">
+              <div className="auth-bg-glow" style={{ top: '-10%', left: '-10%', width: '120%', height: '120%', opacity: 0.1 }} />
+              <Building2 size={32} className="text-primary mx-auto mb-4 relative z-10" />
+              <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 relative z-10">Entity Authority</h4>
+              <p className="text-xs text-secondary font-medium leading-relaxed mb-8 relative z-10">Your organization currently maintains a <span className="text-primary font-bold">Tier 1</span> hiring status in the regional ecosystem.</p>
+              
+              <div className="p-4 bg-void/80 rounded-2xl border border-white/5 relative z-10">
+                 <p className="text-[10px] text-muted font-black uppercase tracking-widest mb-1">Ecosystem Ranking</p>
+                 <p className="text-xl font-black text-white tracking-tighter">#144 <span className="text-[10px] text-green-400">▲ 12</span></p>
               </div>
-            ) : (
-              <div className="org-empty">
-                <Briefcase size={32}/>
-                <p>No jobs posted yet</p>
-                <Link to="/post-job" className="org-action-link">Post your first job</Link>
-              </div>
-            )}
-          </motion.div>
 
-          {/* ── Analytics ──────────────────────────────────────────────────── */}
-          <motion.div className="org-card org-card--full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-            <div className="org-card-header">
-              <h3>Analytics Overview</h3>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>Last 30 days</span>
-            </div>
-            <div className="org-analytics-grid">
-              {[
-                { label: 'Conversion Rate', value: data?.pendingApplications?.length > 0 ? `${Math.round((data?.pendingApplications?.length / (org?.totalJobs||1)) * 100)}%` : '–', desc: 'Applications per job' },
-                { label: 'Avg. Views per Job', value: org?.totalJobs > 0 ? Math.round((org?.profileViews||0) / org.totalJobs) : '–', desc: 'Views / Active Jobs' },
-                { label: 'Response Rate', value: '85%', desc: 'Based on activity' },
-                { label: 'Talent Pool', value: data?.pendingApplications?.reduce((a, b) => a + 1, 0) || 0, desc: 'Total applicants reached' },
-              ].map(m => (
-                <div key={m.label} className="analytics-metric">
-                  <div className="analytics-value">{m.value}</div>
-                  <div className="analytics-label">{m.label}</div>
-                  <div className="analytics-desc">{m.desc}</div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+              <div className="mt-8 pt-8 border-t border-white/5 relative z-10">
+                <button className="flex items-center justify-center gap-2 w-full text-[10px] font-black text-muted uppercase tracking-widest hover:text-white transition-colors">
+                  <Settings size={14} /> Global Entity Settings
+                </button>
+              </div>
+            </section>
+          </div>
 
         </div>
       </div>
       <BottomNav />
-
-      <style>{`
-        .org-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        .org-container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
-        .org-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
-        .org-header-name { display: flex; align-items: center; gap: 16px; }
-        .org-header-logo { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 2px solid var(--border); }
-        .org-header-logo-placeholder { width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, var(--saffron-dark), var(--saffron)); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: white; }
-        .org-header h1 { font-size: 1.6rem; color: var(--text-white); margin-bottom: 2px; }
-        .org-header-type { color: var(--text-muted); font-size: 0.85rem; }
-        .org-header-actions { display: flex; gap: 10px; align-items: center; }
-        .org-btn { display: flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-family: var(--font-display); font-size: 0.88rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
-        .org-btn--ghost { border: 1px solid var(--border); color: var(--text-secondary); }
-        .org-btn--ghost:hover { border-color: var(--saffron); color: var(--saffron); }
-        .org-btn--primary { background: var(--saffron); color: white; }
-        .org-btn--primary:hover { background: var(--saffron-light); }
-
-        .org-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-        @media (max-width: 768px) { .org-stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        .org-stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; cursor: default; }
-        .org-stat-icon { display: flex; justify-content: center; margin-bottom: 10px; }
-        .org-stat-value { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-        .org-stat-label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-
-        .org-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        @media (max-width: 768px) { .org-grid { grid-template-columns: 1fr; } }
-        .org-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
-        .org-card--full { grid-column: 1 / -1; }
-        .org-card-header { display: flex; align-items: center; justify-content: space-between; }
-        .org-card-header h3 { font-size: 1rem; color: var(--text-white); }
-        .org-card-count { background: rgba(255,107,0,0.1); color: var(--saffron); padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
-
-        .org-app-list { display: flex; flex-direction: column; gap: 8px; }
-        .org-app-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-input); border-radius: 12px; }
-        .org-app-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--saffron-dark), var(--saffron)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 0.9rem; flex-shrink: 0; overflow: hidden; }
-        .org-app-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .org-app-name { font-weight: 600; color: var(--text-primary); font-size: 0.88rem; }
-        .org-app-role { font-size: 0.75rem; color: var(--text-muted); }
-        .org-app-status { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .org-status { font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-        .org-status--submitted { color: var(--saffron); }
-        .org-status--reviewed { color: var(--electric); }
-        .org-status--accepted { color: var(--india-green); }
-        .org-status--rejected { color: #ff4444; }
-
-        .org-job-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-input); border-radius: 12px; text-decoration: none; transition: background 0.2s; }
-        .org-job-row:hover { background: var(--bg-card-hover); }
-        .org-job-title { font-weight: 600; color: var(--text-primary); font-size: 0.88rem; margin-bottom: 4px; }
-        .org-job-meta { display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-muted); }
-        .org-job-badge { padding: 3px 10px; border-radius: 20px; font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; }
-        .org-job-badge--active { background: rgba(19,136,8,0.1); color: var(--india-green); }
-        .org-job-badge--closed { background: rgba(255,255,255,0.04); color: var(--text-muted); }
-
-        .org-analytics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        @media (max-width: 768px) { .org-analytics-grid { grid-template-columns: repeat(2,1fr); } }
-        .analytics-metric { background: var(--bg-input); border-radius: 12px; padding: 20px; text-align: center; }
-        .analytics-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--text-white); margin-bottom: 4px; }
-        .analytics-label { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
-        .analytics-desc { font-size: 0.72rem; color: var(--text-muted); }
-
-        .org-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; color: var(--text-muted); font-size: 0.85rem; text-align: center; }
-        .org-action-link { color: var(--electric); font-weight: 600; font-size: 0.85rem; }
-      `}</style>
     </div>
   );
 }

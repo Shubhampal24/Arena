@@ -3,9 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { orgsAPI, jobsAPI } from '../utils/api';
 import { motion } from 'framer-motion';
 import {
-  Building2, MapPin, CheckCircle, Trophy, Briefcase, Eye, Users, CheckCircle2, ChevronRight, Share2, Globe, ArrowRight
+  Building2, MapPin, Trophy, Briefcase, Eye, Users, 
+  CheckCircle2, ChevronRight, Share2, Globe, ArrowRight,
+  ShieldCheck, Calendar, Zap, ExternalLink, Verified
 } from 'lucide-react';
 import BottomNav from '../components/ui/BottomNav';
+import toast from 'react-hot-toast';
 
 export default function OrgProfile() {
   const { slug } = useParams();
@@ -18,227 +21,355 @@ export default function OrgProfile() {
       setOrg(r.data.data);
       setLoad(false);
       return jobsAPI.getAll({ 'postedBy.orgId': r.data.data._id, isActive: true, limit: 6 });
-    }).then(r => { if (r) setJobs(r.data.data); }).catch(() => setLoad(false));
+    }).then(r => { 
+      if (r) setJobs(r.data.data); 
+    }).catch(() => setLoad(false));
   }, [slug]);
 
-  if (loading) return <div className="page flex-center" style={{ height: '80vh' }}><div className="skeleton" style={{ width: 120, height: 120, borderRadius: 20 }} /></div>;
-  if (!org) return <div className="page flex-center" style={{ height: '80vh' }}><h2>Organization not found</h2></div>;
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Organization link copied!');
+  };
+
+  if (loading) return (
+    <div className="page-shell">
+      <div className="skeleton-shimmer" style={{ height: 300, width: '100%' }} />
+      <div className="container" style={{ maxWidth: 1000, marginTop: -70 }}>
+        <div className="flex gap-6 items-end mb-10">
+          <div className="skeleton-shimmer rounded-3xl" style={{ width: 140, height: 140, border: '4px solid var(--bg-void)' }} />
+          <div className="space-y-4 pb-4">
+            <div className="skeleton-shimmer rounded-lg" style={{ width: 300, height: 40 }} />
+            <div className="skeleton-shimmer rounded-lg" style={{ width: 180, height: 24 }} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-8">
+            <div className="skeleton-shimmer rounded-3xl" style={{ height: 250 }} />
+            <div className="skeleton-shimmer rounded-3xl" style={{ height: 400 }} />
+          </div>
+          <div className="skeleton-shimmer rounded-3xl" style={{ height: 350 }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!org) return (
+    <div className="page-shell flex-center flex-col text-center">
+      <div className="p-6 bg-void rounded-full border mb-4 text-muted">
+        <Building2 size={48} />
+      </div>
+      <h2 className="h2">Organization Not Found</h2>
+      <p className="text-secondary mt-2">The organization you are looking for does not exist on Arena.</p>
+      <Link to="/discover" className="btn btn-primary mt-6">Explore Organizations</Link>
+    </div>
+  );
 
   return (
-    <div className="org-profile-shell">
+    <div className="page-shell p-0">
       
-      {/* ── Banner ── */}
-      <div className="org-banner">
-        <div className="banner-glow-overlay" />
+      {/* Premium Organization Banner */}
+      <div className="org-banner-wrap">
+        <div className="org-banner-bg">
+          <div className="auth-bg-glow" style={{ top: '-40%', right: '10%', width: '60%', height: '100%', opacity: 0.1 }} />
+          <div className="auth-bg-glow" style={{ bottom: '-40%', left: '10%', width: '50%', height: '100%', opacity: 0.15 }} />
+        </div>
+        <div className="banner-grid-lines" />
       </div>
 
-      <div className="org-profile-container">
+      <div className="container relative" style={{ maxWidth: 1000, marginTop: -90 }}>
         
-        {/* ── Header ── */}
-        <div className="org-header-section">
-          <div className="org-header-left">
-            <div className="org-avatar-large">
-              {org.logo ? <img src={org.logo} alt="" /> : <Building2 size={40} className="text-purple-light" />}
+        {/* Org Identity Header */}
+        <div className="flex-between wrap gap-8 items-end mb-10 px-4">
+          <div className="flex gap-8 items-end wrap">
+            <div className="org-logo-xl">
+              {org.logo ? (
+                <img src={org.logo} alt={org.orgName} />
+              ) : (
+                <div className="logo-placeholder"><Building2 size={40} /></div>
+              )}
+              {org.isVerifiedOrg && (
+                <div className="verified-badge-lg" title="Verified Organization">
+                  <ShieldCheck size={24} />
+                </div>
+              )}
             </div>
-            <div className="org-info-block">
-              <div className="org-title-row">
-                <h1>{org.orgName}</h1>
-                {org.isVerifiedOrg && <span className="badge badge-electric" style={{ gap: 4 }}><CheckCircle2 size={12}/> Verified</span>}
+            
+            <div className="org-id-info pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="h1" style={{ fontSize: '2.5rem' }}>{org.orgName}</h1>
+                <Verified size={24} className="text-primary" />
               </div>
-              <p className="org-role-text">{org.orgType}</p>
-              <div className="org-meta-row">
-                <span><MapPin size={14}/> {org.city ? `${org.city}, ` : ''}{org.state || 'Global'}</span>
-                <span className="dot">·</span>
-                {org.foundedYear && <span>Est. {org.foundedYear}</span>}
+              <div className="flex items-center gap-4 text-secondary font-semibold">
+                <span className="text-primary tracking-widest uppercase text-xs">{org.orgType || 'Esports Organization'}</span>
+                <span className="dot" />
+                <span className="flex items-center gap-1"><MapPin size={16} /> {org.city ? `${org.city}, ` : ''}{org.state || 'Global'}</span>
               </div>
             </div>
           </div>
-          <div className="org-header-actions">
-            <button className="btn-follow"><Building2 size={16}/> Follow Org</button>
-            <button className="btn-share-ghost"><Share2 size={16}/></button>
+
+          <div className="flex gap-3 pb-3">
+            <button className="btn btn-primary px-8 shadow-primary">Follow Org</button>
+            <button onClick={handleShare} className="btn btn-secondary p-3"><Share2 size={20} /></button>
           </div>
         </div>
 
-        {/* ── Layout Grid ── */}
-        <div className="org-grid-layout">
+        {/* Global Layout Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Main Column */}
-          <div className="org-main">
+          <div className="md:col-span-2 space-y-8">
             
+            {/* About Section */}
             {org.description && (
-              <motion.div className="org-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <h3 className="card-title">About Us</h3>
-                <p className="about-text">{org.description}</p>
-              </motion.div>
+              <motion.section 
+                className="glass-surface p-8 rounded-3xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
+                  <ShieldCheck size={24} className="text-primary" /> Mission & Identity
+                </h3>
+                <div className="prose text-secondary leading-relaxed text-lg">
+                  {org.description}
+                </div>
+              </motion.section>
             )}
 
+            {/* Achievements */}
             {org.achievements?.length > 0 && (
-              <motion.div className="org-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <h3 className="card-title"><Trophy size={20} className="text-saffron" /> Team Achievements</h3>
-                <div className="achievements-list">
+              <section className="space-y-6">
+                <h3 className="text-xl font-bold px-2 flex items-center gap-3">
+                  <Trophy size={24} className="text-primary" /> Legacy & Achievements
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
                   {org.achievements.map((a, i) => (
-                    <div key={i} className="achievement-item">
-                      <div className="achievement-icon">🏆</div>
-                      <div>
-                        <div className="achievement-title">{a.title}</div>
-                        <div className="achievement-desc">
-                          {a.tournament} {a.year && `· ${a.year}`} {a.placement && `· ${a.placement}`}
-                        </div>
+                    <motion.div 
+                      key={i} 
+                      className="glass-surface p-6 rounded-3xl flex gap-6 items-center border-l-4 border-primary"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-primary/5 flex-center text-primary shrink-0">
+                        <Trophy size={28} />
                       </div>
-                    </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-bold text-white">{a.title}</h4>
+                        <p className="text-secondary font-medium mt-1">
+                          {a.tournament} {a.placement && `• ${a.placement}`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-muted bg-void px-3 py-1 rounded-full border">{a.year || 'N/A'}</span>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
 
+            {/* Open Positions */}
             {jobs.length > 0 && (
-              <motion.div className="org-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <div className="jobs-header-row">
-                  <h3 className="card-title"><Briefcase size={20} className="text-electric" /> Open Positions</h3>
-                  <Link to={`/jobs?search=${org.orgName}`} className="view-all-link">View All <ArrowRight size={14}/></Link>
+              <section className="space-y-6">
+                <div className="flex-between items-center px-2">
+                  <h3 className="text-xl font-bold flex items-center gap-3">
+                    <Briefcase size={24} className="text-primary" /> Active Opportunities
+                  </h3>
+                  <Link to={`/jobs?search=${org.orgName}`} className="text-sm font-bold text-primary flex items-center gap-1 hover:underline">
+                    View Board <ArrowRight size={16} />
+                  </Link>
                 </div>
-                <div className="jobs-list">
+                <div className="grid grid-cols-1 gap-4">
                   {jobs.map((j) => (
-                    <Link key={j._id} to={`/jobs/${j._id}`} className="job-list-card">
-                      <div className="job-info-left">
-                        <div className="job-list-title">{j.title}</div>
-                        <div className="job-list-meta">
-                          {j.gameName && <span className="text-saffron font-bold">{j.gameName}</span>}
-                          {j.gameName && <span className="dot">·</span>}
-                          <span>{j.workType}</span>
+                    <Link 
+                      key={j._id} 
+                      to={`/jobs/${j._id}`} 
+                      className="glass-surface p-6 rounded-3xl flex-between hover:border-primary transition-all group"
+                    >
+                      <div className="flex gap-4 items-center">
+                        <div className="w-12 h-12 rounded-xl bg-void border flex-center text-primary">
+                          <Briefcase size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white group-hover:text-primary transition-colors">{j.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-secondary">
+                            <span className="text-primary font-bold">{j.gameName}</span>
+                            <span className="dot" />
+                            <span>{j.workType}</span>
+                          </div>
                         </div>
                       </div>
-                      <ChevronRight size={18} className="job-arrow" />
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-muted hide-mobile">Apply Now</span>
+                        <ChevronRight size={20} className="text-muted group-hover:text-primary transition-transform group-hover:translate-x-1" />
+                      </div>
                     </Link>
                   ))}
                 </div>
-              </motion.div>
+              </section>
             )}
           </div>
 
           {/* Sidebar Column */}
-          <div className="org-sidebar">
+          <aside className="space-y-6">
             
-            {(org.activeGames?.length > 0) && (
-              <motion.div className="org-side-card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-                <h4 className="side-title">Active Rosters</h4>
-                <div className="side-tags">
-                  {org.activeGames.map((g, i) => <span key={i} className="badge badge-saffron">{g.toUpperCase()}</span>)}
+            {/* Quick Metrics Card */}
+            <div className="glass-surface p-8 rounded-3xl space-y-8">
+              <h4 className="text-xs text-muted uppercase tracking-widest font-bold">Organization Performance</h4>
+              
+              <div className="space-y-6">
+                <div className="flex gap-5 items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-void border flex-center text-primary">
+                    <Users size={22} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted uppercase font-bold tracking-wider">Fanbase</p>
+                    <p className="text-xl font-bold text-white">{org.followersCount || 0}</p>
+                  </div>
                 </div>
-              </motion.div>
-            )}
 
-            <motion.div className="org-side-card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-              <h4 className="side-title">Community Metrics</h4>
-              <div className="metrics-list">
-                <div className="metric-item">
-                  <div className="metric-icon-wrap"><Briefcase size={16} className="text-purple-light"/></div>
-                  <div className="metric-content">
-                    <span className="metric-value">{org.activeJobs || 0}</span>
-                    <span className="metric-label">Open Jobs</span>
+                <div className="flex gap-5 items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-void border flex-center text-primary">
+                    <Briefcase size={22} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted uppercase font-bold tracking-wider">Hiring Capacity</p>
+                    <p className="text-xl font-bold text-white">{org.activeJobs || 0} Openings</p>
                   </div>
                 </div>
-                <div className="metric-item">
-                  <div className="metric-icon-wrap"><Users size={16} className="text-electric"/></div>
-                  <div className="metric-content">
-                    <span className="metric-value">{org.followersCount || 0}</span>
-                    <span className="metric-label">Followers</span>
+
+                <div className="flex gap-5 items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-void border flex-center text-primary">
+                    <Eye size={22} />
                   </div>
-                </div>
-                <div className="metric-item">
-                  <div className="metric-icon-wrap"><Eye size={16} className="text-saffron"/></div>
-                  <div className="metric-content">
-                    <span className="metric-value">{org.profileViews || 0}</span>
-                    <span className="metric-label">Profile Views</span>
+                  <div>
+                    <p className="text-[11px] text-muted uppercase font-bold tracking-wider">Engagement</p>
+                    <p className="text-xl font-bold text-white">{org.profileViews || 0} Visits</p>
                   </div>
                 </div>
               </div>
-            </motion.div>
 
-            {org.website && (
-              <motion.div className="org-side-card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                <a href={org.website.startsWith('http') ? org.website : `https://${org.website}`} target="_blank" rel="noreferrer" className="website-link">
-                  <Globe size={18}/> Visit Official Website
-                </a>
-              </motion.div>
+              {org.foundedYear && (
+                <div className="pt-6 border-t border-white/5 flex items-center gap-3 text-secondary">
+                  <Calendar size={16} />
+                  <span className="text-sm font-semibold">Established in {org.foundedYear}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Active Disciplines */}
+            {org.activeGames?.length > 0 && (
+              <div className="glass-surface p-8 rounded-3xl space-y-4">
+                <h4 className="text-xs text-muted uppercase tracking-widest font-bold">Active Rosters</h4>
+                <div className="flex flex-wrap gap-2">
+                  {org.activeGames.map((g, i) => (
+                    <span key={i} className="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl text-xs font-bold text-primary uppercase">
+                      {g}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
-          </div>
+
+            {/* External Links */}
+            {org.website && (
+              <a 
+                href={org.website.startsWith('http') ? org.website : `https://${org.website}`} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="btn btn-secondary btn-lg btn-full gap-2"
+              >
+                <Globe size={18} /> Official Website <ExternalLink size={14} />
+              </a>
+            )}
+
+            <div className="glass-surface p-6 rounded-3xl text-center">
+              <Zap size={24} className="text-primary mx-auto mb-3" />
+              <p className="text-[10px] text-muted uppercase font-bold">Partnership Inquiries</p>
+              <p className="text-sm font-bold text-white mt-1">contact@{slug}.pro</p>
+            </div>
+          </aside>
 
         </div>
       </div>
+      
+      <div className="pb-24" />
       <BottomNav />
 
       <style>{`
-        .org-profile-shell { min-height: 100vh; padding-top: 72px; padding-bottom: 80px; }
-        
-        .org-banner { height: 240px; background: linear-gradient(135deg, rgba(123,47,190,0.2), rgba(0,229,255,0.15)); border-bottom: 1px solid var(--border-dim); position: relative; overflow: hidden; }
-        .banner-glow-overlay { position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; border-radius: 50%; background: var(--purple-light); filter: blur(120px); opacity: 0.2; }
+        .org-banner-wrap {
+          height: 320px;
+          position: relative;
+          background: #0a0a14;
+          overflow: hidden;
+        }
 
-        .org-profile-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; position: relative; top: -60px; }
+        .org-banner-bg {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+        }
 
-        .org-header-section { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 40px; }
-        
-        .org-header-left { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
-        .org-avatar-large { width: 140px; height: 140px; border-radius: 20px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; border: 4px solid var(--border); box-shadow: 0 12px 32px rgba(0,0,0,0.4); overflow: hidden; flex-shrink: 0; }
-        .org-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .org-info-block { padding-bottom: 10px; }
-        .org-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-        .org-title-row h1 { font-size: 2.2rem; font-weight: 800; color: var(--text-white); line-height: 1.1; }
-        .org-role-text { color: var(--purple-light); font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
-        .org-meta-row { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.9rem; }
+        .banner-grid-lines {
+          position: absolute;
+          inset: 0;
+          opacity: 0.05;
+          background-image: radial-gradient(circle at 2px 2px, var(--primary) 1px, transparent 0);
+          background-size: 32px 32px;
+        }
 
-        .org-header-actions { display: flex; gap: 12px; margin-bottom: 10px; }
-        .btn-follow { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--purple), var(--purple-light)); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(123,47,190,0.3); }
-        .btn-follow:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(123,47,190,0.4); }
-        .btn-share-ghost { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-dim); border-radius: 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
-        .btn-share-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text-white); border-color: var(--border); }
+        .org-logo-xl {
+          width: 160px;
+          height: 160px;
+          border-radius: 36px;
+          background: var(--bg-void);
+          border: 6px solid var(--bg-void);
+          position: relative;
+          box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+          overflow: visible;
+          flex-shrink: 0;
+        }
 
-        .org-grid-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
-        @media (max-width: 860px) { .org-grid-layout { grid-template-columns: 1fr; } }
-        
-        .org-main { display: flex; flex-direction: column; gap: 24px; }
-        
-        .org-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-card); }
-        .card-title { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 700; color: var(--text-white); margin-bottom: 24px; }
-        .about-text { color: var(--text-secondary); line-height: 1.8; font-size: 1rem; white-space: pre-wrap; }
+        .org-logo-xl img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 30px;
+        }
 
-        .achievements-list { display: flex; flex-direction: column; gap: 16px; }
-        .achievement-item { display: flex; gap: 16px; padding: 16px; background: var(--bg-input); border-radius: 12px; border: 1px solid rgba(123,47,190,0.15); transition: border-color 0.2s; }
-        .achievement-item:hover { border-color: rgba(123,47,190,0.4); }
-        .achievement-icon { font-size: 2rem; line-height: 1; }
-        .achievement-title { font-weight: 700; color: var(--text-white); font-size: 1.05rem; margin-bottom: 6px; }
-        .achievement-desc { color: var(--text-muted); font-size: 0.9rem; }
+        .logo-placeholder {
+          width: 100%;
+          height: 100%;
+          border-radius: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+          color: white;
+        }
 
-        .jobs-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .jobs-header-row .card-title { margin-bottom: 0; }
-        .view-all-link { display: flex; align-items: center; gap: 4px; color: var(--electric); font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; text-decoration: none; transition: filter 0.2s; }
-        .view-all-link:hover { filter: brightness(1.2); }
+        .verified-badge-lg {
+          position: absolute;
+          top: -10px;
+          right: -10px;
+          width: 44px;
+          height: 44px;
+          background: var(--primary);
+          border: 6px solid var(--bg-void);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
 
-        .jobs-list { display: flex; flex-direction: column; gap: 12px; }
-        .job-list-card { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-input); border: 1px solid var(--border-dim); border-radius: 12px; text-decoration: none; transition: all 0.2s; }
-        .job-list-card:hover { background: var(--bg-card-hover); border-color: var(--electric); transform: translateY(-2px); }
-        .job-info-left { display: flex; flex-direction: column; gap: 6px; }
-        .job-list-title { color: var(--text-white); font-size: 1.05rem; font-weight: 700; }
-        .job-list-meta { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); }
-        .job-arrow { color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
-        .job-list-card:hover .job-arrow { color: var(--electric); transform: translateX(4px); }
-
-        .org-sidebar { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 96px; }
-        .org-side-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-card); }
-        .side-title { color: var(--text-secondary); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
-        
-        .side-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-
-        .metrics-list { display: flex; flex-direction: column; gap: 20px; }
-        .metric-item { display: flex; align-items: center; gap: 16px; }
-        .metric-icon-wrap { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .metric-content { display: flex; flex-direction: column; gap: 2px; }
-        .metric-value { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--text-white); line-height: 1; }
-        .metric-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-
-        .website-link { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-dim); border-radius: 12px; color: var(--text-primary); font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
-        .website-link:hover { background: rgba(255,255,255,0.08); color: white; border-color: var(--border); }
+        @media (max-width: 768px) {
+          .org-logo-xl { width: 120px; height: 120px; border-radius: 28px; }
+          .org-logo-xl img { border-radius: 22px; }
+          .logo-placeholder { border-radius: 22px; }
+          .verified-badge-lg { width: 36px; height: 36px; top: -5px; right: -5px; border-width: 4px; }
+          .h1 { font-size: 2rem !important; }
+        }
       `}</style>
     </div>
   );

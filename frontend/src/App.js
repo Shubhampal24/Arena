@@ -2,8 +2,8 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/ui/Navbar';
 import LoadingScreen from './components/ui/LoadingScreen';
+import MainLayout from './components/layout/MainLayout';
 import './styles/globals.css';
 
 // ── Lazy pages ────────────────────────────────────────────────────────────────
@@ -53,48 +53,44 @@ const GuestRoute = ({ children }) => {
   if (isAuthenticated) {
     if (isOrg) return <Navigate to="/org/dashboard" replace />;
     if (isUser) return <Navigate to="/feed" replace />;
-    // If authenticated but role not confirmed yet, don't redirect yet to avoid loops
   }
   return children;
 };
 
 // ── App shell ─────────────────────────────────────────────────────────────────
 const AppShell = () => {
-  const { loading } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
   if (loading) return <LoadingScreen />;
 
   return (
-    <>
-      <Navbar />
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          {/* Public */}
-          <Route path="/"          element={<Landing />} />
-          <Route path="/jobs"      element={<Jobs />} />
-          <Route path="/jobs/:id"  element={<JobDetail />} />
-          <Route path="/discover"  element={<Discover />} />
-          <Route path="/u/:username"    element={<Profile />} />
-          <Route path="/org/:slug"      element={<OrgProfile />} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public / Landing - No sidebar */}
+        <Route path="/" element={<MainLayout showSidebar={false}><Landing /></MainLayout>} />
+        <Route path="/login" element={<GuestRoute><MainLayout showSidebar={false}><Login /></MainLayout></GuestRoute>} />
+        <Route path="/register" element={<GuestRoute><MainLayout showSidebar={false}><RegisterUser /></MainLayout></GuestRoute>} />
+        <Route path="/register/org" element={<GuestRoute><MainLayout showSidebar={false}><RegisterOrg /></MainLayout></GuestRoute>} />
 
-          {/* Guest only */}
-          <Route path="/login"           element={<GuestRoute><Login /></GuestRoute>} />
-          <Route path="/register"        element={<GuestRoute><RegisterUser /></GuestRoute>} />
-          <Route path="/register/org"    element={<GuestRoute><RegisterOrg /></GuestRoute>} />
+        {/* Discovery - With sidebar if authenticated */}
+        <Route path="/jobs" element={<MainLayout showSidebar={isAuthenticated}><Jobs /></MainLayout>} />
+        <Route path="/jobs/:id" element={<MainLayout showSidebar={isAuthenticated}><JobDetail /></MainLayout>} />
+        <Route path="/discover" element={<MainLayout showSidebar={isAuthenticated}><Discover /></MainLayout>} />
+        <Route path="/u/:username" element={<MainLayout showSidebar={isAuthenticated}><Profile /></MainLayout>} />
+        <Route path="/org/:slug" element={<MainLayout showSidebar={isAuthenticated}><OrgProfile /></MainLayout>} />
 
-          {/* User authenticated */}
-          <Route path="/feed"       element={<PrivateRoute><UserRoute><Feed /></UserRoute></PrivateRoute>} />
-          <Route path="/dashboard"  element={<PrivateRoute><UserRoute><Dashboard /></UserRoute></PrivateRoute>} />
-          <Route path="/profile/edit" element={<PrivateRoute><UserRoute><EditProfile /></UserRoute></PrivateRoute>} />
-          <Route path="/jobs/:id/apply" element={<PrivateRoute><UserRoute><Apply /></UserRoute></PrivateRoute>} />
+        {/* User authenticated - With sidebar */}
+        <Route path="/feed" element={<PrivateRoute><UserRoute><MainLayout><Feed /></MainLayout></UserRoute></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><UserRoute><MainLayout><Dashboard /></MainLayout></UserRoute></PrivateRoute>} />
+        <Route path="/profile/edit" element={<PrivateRoute><UserRoute><MainLayout><EditProfile /></MainLayout></UserRoute></PrivateRoute>} />
+        <Route path="/jobs/:id/apply" element={<PrivateRoute><UserRoute><MainLayout><Apply /></MainLayout></UserRoute></PrivateRoute>} />
 
-          {/* Org authenticated */}
-          <Route path="/org/dashboard" element={<PrivateRoute><OrgRoute><OrgDashboard /></OrgRoute></PrivateRoute>} />
-          <Route path="/post-job"      element={<PrivateRoute><OrgRoute><PostJob /></OrgRoute></PrivateRoute>} />
+        {/* Org authenticated - With sidebar */}
+        <Route path="/org/dashboard" element={<PrivateRoute><OrgRoute><MainLayout><OrgDashboard /></MainLayout></OrgRoute></PrivateRoute>} />
+        <Route path="/post-job" element={<PrivateRoute><OrgRoute><MainLayout><PostJob /></MainLayout></OrgRoute></PrivateRoute>} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </>
+        <Route path="*" element={<MainLayout showSidebar={false}><NotFound /></MainLayout>} />
+      </Routes>
+    </Suspense>
   );
 };
 
@@ -107,12 +103,14 @@ export default function App() {
           position="top-right"
           toastOptions={{
             style: {
-              background: '#13131F',
-              color: '#F0F0F0',
-              border: '1px solid rgba(255,107,0,0.3)',
-              fontFamily: 'Noto Sans, sans-serif',
+              background: '#1e293b',
+              color: '#f1f5f9',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
             },
-            success: { iconTheme: { primary: '#FF6B00', secondary: '#0A0A0F' } },
+            success: { iconTheme: { primary: '#6366f1', secondary: '#fff' } },
           }}
         />
       </AuthProvider>
